@@ -1,2 +1,10 @@
-node_modules/
-.env
+# Visual Studio Code and JetBrains IDE project files
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# log files
+*.log
