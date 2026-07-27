@@ -38,7 +38,12 @@ export default function Register() {
     setError('');
 
     try {
-      const response = await axiosClient.post('/auth/register', { name, email, password });
+      const response = await axiosClient.post('/auth/register', {
+        displayName: name,
+        name: name,
+        email,
+        password
+      });
       const accessToken = response.data.data?.tokens?.accessToken || response.data.accessToken;
       
       if (accessToken) {

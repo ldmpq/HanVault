@@ -7,10 +7,10 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  // Lấy token từ Zustand Store (nơi chúng ta đã lưu lúc Login thành công)
+  // Lấy token từ Zustand Store (nơi đã lưu lúc Login thành công)
   const token = useAuthStore((state) => state.token);
 
-  // Nếu không có token (chưa đăng nhập), ép chuyển hướng về trang /login
+  // Nếu không có token (chưa đăng nhập), ép chuyển hướng về trang Đăng nhập
   if (!token) {
     return <Navigate to="/login" replace />;
   }

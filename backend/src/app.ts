@@ -6,10 +6,14 @@ import { swaggerSpec } from './config/swagger';
 import authRoutes from './modules/auth/auth.route';
 import vocabularyRoutes from './modules/vocabulary/vocabulary.route';
 import srsRoutes from './modules/srs/srs.route';
+import dashboardRoutes from './modules/dashboard/dashboard.route';
 
 const app: Application = express();
 
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true,
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -24,6 +28,9 @@ app.get('/health', (req: Request, res: Response) => {
 // Auth routes
 app.use('/api/auth', authRoutes);
 
+// Dashboard routes
+app.use('/api/dashboard', dashboardRoutes);
+
 // Vocabulary routes
 app.use('/api/vocabularies', vocabularyRoutes);
 
@@ -31,6 +38,7 @@ app.use('/api/vocabularies', vocabularyRoutes);
 app.use('/api/srs', srsRoutes);
 
 // Quiz routes
+
 
 // Global error handling middleware
 app.use((err: any, req: Request, res: Response, next: any) => {

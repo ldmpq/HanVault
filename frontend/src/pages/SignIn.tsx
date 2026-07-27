@@ -21,13 +21,23 @@ export default function SignIn() {
 
     try {
       const response = await axiosClient.post('/auth/login', { email, password });
-      const accessToken = response.data.data?.tokens?.accessToken || response.data.accessToken;
+
+      console.log("Chi tiết Response từ API:", response.data);
+
+      const accessToken = 
+        response.data.data?.tokens?.accessToken ||
+        response.data.data?.accessToken ||
+        response.data.accessToken ||
+        response.data.token;
       
       if (accessToken) {
         setToken(accessToken);
         navigate('/dashboard');
+      } else {
+        setError('Đăng nhập thành công nhưng không tìm thấy Token. Hãy mở F12 > Console để kiểm tra cấu trúc JSON!');
       }
     } catch (err: any) {
+      console.error("Lỗi đăng nhập:", err);
       setError(err.response?.data?.message || 'Email hoặc mật khẩu không chính xác.');
     } finally {
       setLoading(false);
