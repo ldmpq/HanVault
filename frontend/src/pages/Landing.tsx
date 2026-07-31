@@ -1,238 +1,220 @@
-import { Play, Star, ChevronLeft, ChevronRight, Zap, Volume2, CheckCircle2, Globe } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { BookOpen, RefreshCw, TrendingUp, GraduationCap } from 'lucide-react';
 
 export default function Landing() {
+  const navigate = useNavigate();
+
+  const navItems = [
+    { name: 'Trang chủ', path: '/dashboard' },
+    { name: 'Từ điển', path: '/dictionary' },
+    { name: 'Dịch thuật', path: '/translate' },
+    { name: 'Bộ thẻ', path: '/library' },
+    { name: 'Luyện tập', path: '/review' },
+    { name: 'Tiến trình', path: '/progress' },
+    { name: 'Khóa học', path: '/courses' },
+  ];
+
   return (
-    <div className="min-h-screen bg-[#FDFBF9] text-gray-900 font-sans selection:bg-red-100 selection:text-red-900">
+    <div className="min-h-screen bg-[#FCFAF8] font-sans selection:bg-red-100 selection:text-[#A82B2B] flex flex-col">
       
-      {/* 1. NAVBAR */}
-      <nav className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-red-50 text-[#A82B2B] flex items-center justify-center rounded-lg font-bold text-sm">
-            中
-          </div>
-          <span className="font-bold text-xl tracking-tight">HanVault</span>
-        </div>
+      {/* ================= HEADER / NAVIGATION ================= */}
+      <header className="w-full flex items-center justify-between py-6 px-8 md:px-16 max-w-[1400px] mx-auto bg-transparent z-10">
+        <Link to="/dashboard" className="text-2xl font-bold text-[#A82B2B] tracking-tight">
+          HanVault
+        </Link>
         
-        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-500">
-          <a href="#dashboard" className="text-gray-900 border-b-2 border-[#A82B2B] pb-1">Dashboard</a>
-          <a href="#library" className="hover:text-gray-900 transition-colors">Library</a>
-          <a href="#review" className="hover:text-gray-900 transition-colors">Review</a>
-          <a href="#progress" className="hover:text-gray-900 transition-colors">Progress</a>
-        </div>
+        {/* Desktop Navigation */}
+        <nav className="hidden lg:flex gap-8">
+          {navItems.map((item) => (
+            <Link 
+              key={item.name} 
+              to={item.path}
+              className="text-sm font-medium text-gray-600 hover:text-[#A82B2B] transition-colors"
+            >
+              {item.name}
+            </Link>
+          ))}
+        </nav>
 
-        <div className="flex items-center gap-6">
-          <Link to="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
-            Login
+        {/* Action Icons / Auth */}
+        <div className="flex items-center gap-6 text-gray-600">
+          <Link
+            to="/login"
+            className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            Đăng nhập
           </Link>
-          <Link to="/register" className="bg-[#A82B2B] text-white px-5 py-2.5 rounded-full text-sm font-semibold hover:bg-[#8b2323] transition-colors">
-            START FREE TRIAL
+          <Link
+            to="/register"
+            className="text-sm font-semibold bg-[#A82B2B] text-white px-5 py-2.5 rounded-full hover:bg-[#8b2323] transition-colors"
+          >
+            Đăng ký
           </Link>
         </div>
-      </nav>
+      </header>
 
-      {/* 2. HERO SECTION */}
-      <section className="max-w-4xl mx-auto px-6 pt-20 pb-16 text-center">
-        <div className="inline-block bg-red-50 text-[#A82B2B] px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-8">
-          REDEFINING CHINESE HanVault
-        </div>
-        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6">
-          Master Chinese with <br />
-          <span className="text-[#A82B2B] italic font-serif">Elegance</span>
-        </h1>
-        <p className="text-lg text-gray-500 mb-10 max-w-2xl mx-auto">
-          Experience a serene path to fluency. Our SRS-powered platform combines 
-          cognitive science with premium aesthetics for the sophisticated learner.
-        </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <button className="w-full sm:w-auto bg-[#A82B2B] text-white px-8 py-4 rounded-full font-semibold hover:bg-[#8b2323] transition-colors">
-            Start Free Trial
-          </button>
-          <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-full font-semibold text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 transition-colors">
-            <Play className="w-4 h-4 text-[#A82B2B]" /> View Philosophy
-          </button>
-        </div>
-      </section>
-
-      {/* Mockup / Image Placeholder */}
-      <div className="max-w-md mx-auto px-6 mb-24">
-        <div className="bg-white p-6 rounded-[2rem] shadow-xl shadow-red-900/5 border border-gray-100 flex flex-col items-center">
-          <div className="w-full flex justify-between items-center mb-8">
-            <div>
-              <p className="text-sm font-bold text-gray-400 uppercase">Daily Progress</p>
-              <p className="text-xs text-gray-400">JULY 24, 2024</p>
-            </div>
-            <div className="w-10 h-10 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center">
-              <Zap className="w-5 h-5 fill-current" />
-            </div>
-          </div>
-          {/* Vòng tròn Progress ảo */}
-          <div className="w-48 h-48 rounded-full border-[12px] border-red-50 border-t-[#A82B2B] flex flex-col items-center justify-center mb-8">
-            <span className="text-4xl font-bold">75%</span>
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Of Daily Goal</span>
-          </div>
-          <div className="flex gap-4 w-full">
-            <div className="flex-1 bg-red-50 rounded-2xl p-4 text-center">
-              <p className="text-xs font-bold text-gray-500 mb-1">NEW WORDS</p>
-              <p className="text-xl font-bold">12</p>
-            </div>
-            <div className="flex-1 bg-red-50 rounded-2xl p-4 text-center">
-              <p className="text-xs font-bold text-gray-500 mb-1">ACCURACY</p>
-              <p className="text-xl font-bold">94%</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 3. BENTO GRID FEATURES SECTION */}
-      <section className="max-w-5xl mx-auto px-6 mb-32">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">Precision Meets Mindfulness</h2>
-          <p className="text-gray-500">Tools designed for the serious student, wrapped in a distraction-free environment.</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Card 1: Adaptive SRS */}
-          <div className="md:col-span-2 bg-white rounded-[2rem] p-10 shadow-sm border border-gray-100 flex flex-col justify-center">
-            <div className="w-12 h-12 bg-red-50 text-[#A82B2B] rounded-full flex items-center justify-center mb-6">
-              <Zap className="w-6 h-6" />
-            </div>
-            <h3 className="text-xl font-bold mb-3">Adaptive Spaced Repetition</h3>
-            <p className="text-gray-500 max-w-sm">Our algorithm learns your forgetting curve and presents characters just as they slip from memory.</p>
-          </div>
-
-          {/* Card 2: HSK Optimized */}
-          <div className="bg-[#F2E5E5] rounded-[2rem] p-10 flex flex-col justify-center">
-            <div className="w-12 h-12 bg-white/50 text-[#A82B2B] rounded-full flex items-center justify-center mb-6">
-              <CheckCircle2 className="w-6 h-6" />
-            </div>
-            <h3 className="text-xl font-bold mb-6">HSK 1-6 Optimized</h3>
-            <div className="w-full bg-white/40 h-2 rounded-full overflow-hidden mb-2">
-              <div className="w-[88%] h-full bg-[#A82B2B] rounded-full"></div>
-            </div>
-            <p className="text-[10px] font-bold text-[#A82B2B] uppercase tracking-widest">CURRICULUM COVERAGE: 88%</p>
-          </div>
-
-          {/* Card 3: Native Audio */}
-          <div className="bg-[#A82B2B] rounded-[2rem] p-10 text-white flex flex-col justify-center">
-            <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center mb-6">
-              <Volume2 className="w-6 h-6" />
-            </div>
-            <h3 className="text-xl font-bold mb-3">Native Audio Clarity</h3>
-            <p className="text-red-100 text-sm">Studio-grade recordings from native speakers to perfect your tones and rhythm.</p>
-          </div>
-
-          {/* Card 4: Sanctuary */}
-          <div className="md:col-span-2 bg-[#FCF7F7] rounded-[2rem] p-10 flex flex-col sm:flex-row items-center justify-between gap-8">
-            <div className="max-w-sm">
-              <h3 className="text-xl font-bold mb-3">A Sanctuary for Focus</h3>
-              <p className="text-gray-500">No gamified gimmicks. Just you, the characters, and the calm pursuit of HanVault.</p>
-            </div>
-            <div className="w-32 h-32 rounded-full border-2 border-dashed border-[#A82B2B]/30 flex items-center justify-center text-4xl text-[#A82B2B] font-serif">
-              悟
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. TESTIMONIALS */}
-      <section className="bg-[#FDF9F7] py-24">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="flex justify-between items-end mb-12">
-            <h2 className="text-3xl font-bold max-w-sm leading-tight">Loved by students who value serenity over streaks.</h2>
-            <div className="hidden sm:flex gap-4">
-              <button className="w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:border-gray-900 transition-colors">
-                <ChevronLeft className="w-5 h-5" />
+      {/* ================= MAIN CONTENT ================= */}
+      <main className="flex-1 w-full max-w-[1400px] mx-auto px-8 md:px-16 pt-12 pb-24">
+        
+        {/* HERO SECTION */}
+        <section className="flex flex-col lg:flex-row items-center gap-16 mb-32">
+          {/* Left: Text Content */}
+          <div className="flex-1 max-w-xl">
+            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-[1.1] tracking-tight">
+              Master Chinese Vocabulary with <span className="text-[#A82B2B]">HanVault</span>
+            </h1>
+            <p className="text-lg text-gray-600 mb-10 leading-relaxed">
+              The premium spaced-repetition platform for HSK 1-9 learners. Achieve fluency with effortless progress and cultural appreciation.
+            </p>
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => navigate('/login')}
+                className="bg-[#A82B2B] hover:bg-[#8b2323] text-white px-8 py-3.5 rounded-xl font-semibold transition-transform hover:-translate-y-1 shadow-lg shadow-red-900/20"
+              >
+                Start Learning
               </button>
-              <button className="w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:border-gray-900 transition-colors">
-                <ChevronRight className="w-5 h-5" />
+              <button 
+                onClick={() => navigate('/courses')}
+                className="bg-white border border-[#A82B2B] text-[#A82B2B] hover:bg-red-50 px-8 py-3.5 rounded-xl font-semibold transition-colors"
+              >
+                View Courses
               </button>
             </div>
           </div>
+          
+          {/* Right: Hero Illustration */}
+          <div className="flex-1 w-full relative">
+            <div className="aspect-square md:aspect-[4/3] w-full rounded-[2.5rem] bg-gradient-to-tr from-red-50 to-orange-50/50 shadow-sm border border-red-100 overflow-hidden relative flex items-center justify-center">
+              {/* Bạn có thể thay thế hình ảnh 3D thật vào src bên dưới */}
+              <img 
+                src="https://images.unsplash.com/photo-1541959833400-049d37f98ccd?auto=format&fit=crop&w=800&q=80" 
+                alt="HanVault Illustration" 
+                className="w-full h-full object-cover opacity-90 mix-blend-multiply"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-white/60 to-transparent"></div>
+            </div>
+          </div>
+        </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              {
-                text: "The minimalist interface finally allowed me to focus on the actual grammar rather than flashing icons and bells.",
-                name: "Elena R.",
-                role: "HanVault STUDENT"
-              },
-              {
-                text: "Hanyu Pro feels like a high-end fountain pen compared to the crayon-like feel of other apps. Professional and powerful.",
-                name: "Mark J.",
-                role: "SENIOR DEVELOPER"
-              },
-              {
-                text: "The native audio is crystal clear. I've finally cracked my tone issues after years of struggling with robotic voices.",
-                name: "Chen L.",
-                role: "LANGUAGE SPECIALIST"
-              }
-            ].map((review, i) => (
-              <div key={i} className="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-50 flex flex-col justify-between">
-                <div>
-                  <div className="flex gap-1 mb-6 text-[#A82B2B]">
-                    {[1,2,3,4,5].map(star => <Star key={star} className="w-4 h-4 fill-current" />)}
-                  </div>
-                  <p className="text-gray-600 italic mb-8">"{review.text}"</p>
+        {/* FEATURES GRID SECTION */}
+        <section className="flex flex-col items-center">
+          <div className="text-center max-w-2xl mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4 tracking-tight">Everything you need to succeed</h2>
+            <p className="text-gray-600">
+              Our tools are designed to reduce cognitive load and enhance retention during intensive study sessions.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 w-full">
+            
+            {/* Card 1: Tactile Flashcards (Large, span 7) */}
+            <div className="md:col-span-7 bg-white rounded-[2rem] p-10 border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] flex flex-col md:flex-row items-center gap-8 group hover:shadow-md transition-shadow">
+              <div className="flex-1">
+                <div className="w-12 h-12 bg-red-100 text-[#A82B2B] rounded-2xl flex items-center justify-center mb-6">
+                  <BookOpen className="w-6 h-6" />
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
-                    <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${review.name}`} alt={review.name} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold">{review.name}</p>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{review.role}</p>
-                  </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">Tactile Flashcards</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Experience high-quality physical cards in a digital format. Large, centered Hanzi with intuitive checking mechanisms.
+                </p>
+              </div>
+              <div className="flex-1 w-full bg-red-50/50 rounded-2xl p-6 flex items-center justify-center border border-red-50 group-hover:scale-105 transition-transform">
+                <div className="bg-white w-32 h-40 rounded-xl shadow-sm flex flex-col items-center justify-center border border-gray-100 relative">
+                  <span className="text-5xl font-medium text-gray-900">学</span>
+                  <span className="absolute bottom-3 text-[10px] text-gray-400 font-bold uppercase tracking-widest">HSK 1</span>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
+            </div>
 
-      {/* 5. CALL TO ACTION */}
-      <section className="max-w-5xl mx-auto px-6 py-24">
-        <div className="bg-[#A82B2B] rounded-[3rem] p-16 text-center text-white relative overflow-hidden">
-          {/* Pattern Overlay (Dotted) */}
-          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, white 2px, transparent 2px)', backgroundSize: '30px 30px' }}></div>
-          
-          <div className="relative z-10">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">Your Journey to Fluency Starts Here</h2>
-            <p className="text-red-100 mb-10 max-w-xl mx-auto">
-              Join HanVault to mastering Chinese with elegance and scientific precision.
+            {/* Card 2: Smart SRS (Small, span 5) */}
+            <div className="md:col-span-5 bg-white rounded-[2rem] p-10 border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-orange-100 text-orange-500 rounded-2xl flex items-center justify-center mb-6">
+                <RefreshCw className="w-6 h-6" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">Smart SRS</h3>
+              <p className="text-gray-600 leading-relaxed mb-6">
+                Optimized spaced repetition ensures you review at exactly the right time.
+              </p>
+              <div className="w-full h-24 bg-gradient-to-r from-orange-50 to-white rounded-xl border border-orange-100/50 relative overflow-hidden flex items-end">
+                 {/* Decorative Chart placeholder */}
+                 <svg className="w-full h-16 text-orange-400 opacity-20" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <path d="M0,100 L0,50 Q25,20 50,60 T100,10 L100,100 Z" fill="currentColor" />
+                 </svg>
+                 <svg className="absolute w-full h-16 text-orange-500" viewBox="0 0 100 100" preserveAspectRatio="none" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M0,50 Q25,20 50,60 T100,10" />
+                 </svg>
+              </div>
+            </div>
+
+            {/* Card 3: Momentum Tracking (Small, span 5) */}
+            <div className="md:col-span-5 bg-white rounded-[2rem] p-10 border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-md transition-shadow flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 bg-[#F4F1E1] text-[#9A8C46] rounded-2xl flex items-center justify-center mb-6">
+                  <TrendingUp className="w-6 h-6" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">Momentum Tracking</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Visualize your progress with satisfying gradient rings and daily streaks.
+                </p>
+              </div>
+              <div className="mt-8 flex justify-center">
+                <div className="w-24 h-24 rounded-full border-4 border-gray-100 border-t-[#A82B2B] border-r-[#A82B2B] flex items-center justify-center transform -rotate-45">
+                  <span className="text-lg font-bold text-gray-900 transform rotate-45">85%</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 4: Curated Courses (Large, span 7) */}
+            <div className="md:col-span-7 bg-white rounded-[2rem] p-10 border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] flex flex-col-reverse md:flex-row items-center gap-8 hover:shadow-md transition-shadow">
+              <div className="flex-1 w-full bg-gradient-to-br from-pink-50 to-red-50/20 rounded-2xl p-6 flex flex-col gap-2 border border-pink-50">
+                {/* Decorative Course List */}
+                <div className="bg-white/80 p-3 rounded-lg text-xs font-bold text-gray-400 border border-white">HSK 1 - Beginner</div>
+                <div className="bg-white/80 p-3 rounded-lg text-xs font-bold text-gray-400 border border-white">HSK 2 - Elementary</div>
+                <div className="bg-white/80 p-3 rounded-lg text-xs font-bold text-gray-400 border border-white">HSK 3 - Intermediate</div>
+                <div className="bg-[#A82B2B] p-3 rounded-lg text-xs font-bold text-white shadow-sm">HSK 4 - Upper-Int</div>
+              </div>
+              <div className="flex-1">
+                <div className="w-12 h-12 bg-pink-100 text-pink-500 rounded-2xl flex items-center justify-center mb-6">
+                  <GraduationCap className="w-6 h-6" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">Curated Courses</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Follow a structured path from absolute beginner to advanced proficiency with our comprehensive HSK decks.
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+      </main>
+
+      {/* ================= FOOTER ================= */}
+      <footer className="w-full border-t border-gray-200 mt-16 bg-white">
+        <div className="max-w-[1400px] mx-auto px-8 md:px-16 py-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+          <div className="max-w-xs">
+            <div className="text-xl font-bold text-[#A82B2B] mb-4">HanVault</div>
+            <p className="text-sm text-gray-600 mb-6 leading-relaxed">
+              Calmly Master the Tongue. A premium learning environment for sophisticated Mandarin students.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-              <button className="bg-white text-[#A82B2B] px-10 py-4 rounded-full font-bold hover:bg-gray-50 transition-colors">
-                Start 14-Day Free Trial
-              </button>
-              <span className="text-xs font-bold text-red-200 uppercase tracking-widest">No Credit Card Required</span>
+            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">
+              © 2026 HanVault. All rights reserved.
+            </p>
+          </div>
+
+          <div className="flex gap-16">
+            <div className="flex flex-col gap-3 text-sm">
+              <span className="font-bold text-gray-900">Platform</span>
+              <Link to="#" className="text-gray-600 hover:text-[#A82B2B]">Philosophy</Link>
+              <Link to="#" className="text-gray-600 hover:text-[#A82B2B]">Pricing</Link>
+              <Link to="#" className="text-gray-600 hover:text-[#A82B2B]">Help Center</Link>
+            </div>
+            <div className="flex flex-col gap-3 text-sm">
+              <span className="font-bold text-gray-900">Legal</span>
+              <Link to="#" className="text-gray-600 hover:text-[#A82B2B]">Privacy</Link>
+              <Link to="#" className="text-gray-600 hover:text-[#A82B2B]">Terms</Link>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* 6. FOOTER */}
-      <footer className="max-w-6xl mx-auto px-6 py-12 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center gap-6">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 bg-[#A82B2B] text-white flex items-center justify-center rounded text-[10px] font-bold">
-            中
-          </div>
-          <span className="font-bold text-lg text-[#A82B2B]">HanVault</span>
-        </div>
-        
-        <div className="flex gap-8 text-xs font-bold text-gray-400 uppercase tracking-widest">
-          <a href="#" className="hover:text-gray-900 transition-colors">Philosophy</a>
-          <a href="#" className="hover:text-gray-900 transition-colors">Pricing</a>
-          <a href="#" className="hover:text-gray-900 transition-colors">Help Center</a>
-          <a href="#" className="hover:text-gray-900 transition-colors">Privacy</a>
-          <a href="#" className="hover:text-gray-900 transition-colors">Terms</a>
-        </div>
-
-        <div className="flex items-center gap-4 text-gray-400">
-          <p className="text-xs md:hidden lg:block hidden">© 2026 HanVault. Calmly Master the Tongue.</p>
-          <a href="#" className="w-10 h-10 border border-gray-200 rounded-full flex items-center justify-center hover:text-gray-900 hover:border-gray-900 transition-colors">
-            <Globe className="w-4 h-4" />
-          </a>
         </div>
       </footer>
 

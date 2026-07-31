@@ -5,7 +5,7 @@ import { GetDecksQuery, CreateDeckInput, AddItemsInput } from './deck.validation
 
 export class DeckService {
   /**
-   * 1. LẤY DANH SÁCH BỘ THẺ (Lọc theo System Decks hoặc Decks của User)
+   * 1. LẤY DANH SÁCH BỘ THẺ
    */
   static async getDecks(params: GetDecksQuery, currentUserId?: string) {
     const { page = 1, limit = 20, hskLevel, isSystem, keyword } = params;
@@ -24,18 +24,16 @@ export class DeckService {
       offset,
       orderBy: [desc(decks.createdAt)],
       with: {
-        // Đếm số lượng từ vựng trong mỗi bộ thẻ
         items: {
           columns: { vocabularyId: true },
         },
       },
     });
 
-    // Định dạng lại dữ liệu trả về cho đẹp mắt (thêm thuộc tính totalWords)
     const formattedData = data.map((deck) => ({
       ...deck,
       totalWords: deck.items.length,
-      items: undefined, // Loại bỏ mảng items thô
+      items: undefined,
     }));
 
     const [totalRecord] = await db
@@ -57,35 +55,46 @@ export class DeckService {
   }
 
   /**
-   * 2. LẤY CHI TIẾT BỘ THẺ + TOÀN BỘ DANH SÁCH TỪ VỰNG BÊN TRONG
+   * 2. LẤY CHI TIẾT BỘ THẺ + TỪ VỰNG BÊN TRONG
    */
   static async getDeckById(deckId: number) {
     const deck = await db.query.decks.findFirst({
       where: eq(decks.id, deckId),
       with: {
         items: {
+          orderBy: (items, { asc }) => [asc(items.displayOrder)],
           with: {
             vocabulary: {
-              with: { meanings: true },
+              with: { 
+                audioMedia: true,
+                meanings: { limit: 1, orderBy: (meanings, { asc }) => [asc(meanings.displayOrder)] },
+                vocabularyCharacters: {
+                  orderBy: (vc, { asc }) => [asc(vc.position)],
+                  with: { character: true },
+                },
+              },
             },
           },
         },
       },
     });
 
-    if (!deck) {
-      throw new Error('DECK_NOT_FOUND: Bộ thẻ không tồn tại trong hệ thống.');
-    }
+    if (!deck) throw new Error('DECK_NOT_FOUND: Bộ thẻ không tồn tại.');
 
-    // Làm phẳng cấu trúc (Flatten) để Front-end dễ dùng
-    const wordList = deck.items.map((item) => item.vocabulary);
+    const wordList = deck.items.map((item) => ({
+      id: item.vocabulary.id,
+      simplified: item.vocabulary.simplified,
+      pinyin: item.vocabulary.pinyin,
+      audioUrl: item.vocabulary.audioMedia?.url,
+      meaning: item.vocabulary.meanings.length > 0 ? item.vocabulary.meanings[0].meaning : 'Chưa cập nhật',
+      components: item.vocabulary.vocabularyCharacters.map((vc) => ({
+        ch: vc.character.hanzi,
+        py: vc.character.pinyin || '',
+        meaning: vc.character.radicalMeaning || 'Thành phần',
+      })),
+    }));
 
-    return {
-      ...deck,
-      totalWords: wordList.length,
-      vocabularies: wordList,
-      items: undefined,
-    };
+    return { ...deck, totalWords: wordList.length, vocabularies: wordList, items: undefined };
   }
 
   /**
@@ -104,31 +113,25 @@ export class DeckService {
   }
 
   /**
-   * 4. THÊM TỪ VỰNG VÀO BỘ THẺ (TRANSACTION TRÁNH TRÙNG LẶP)
+   * 4. THÊM TỪ VỰNG VÀO BỘ THẺ
    */
   static async addItemsToDeck(deckId: number, input: AddItemsInput) {
     const { vocabularyIds } = input;
 
-    // Kiểm tra bộ thẻ có tồn tại không
     const deck = await db.query.decks.findFirst({ where: eq(decks.id, deckId) });
     if (!deck) throw new Error('DECK_NOT_FOUND: Bộ thẻ không tồn tại.');
 
-    // Sử dụng Transaction để insert, tự động bỏ qua nếu từ đã có trong bộ
-    await db.transaction(async (tx) => {
-      for (const vocabId of vocabularyIds) {
-        // Kiểm tra xem từ đã nằm trong bộ chưa
-        const exists = await tx.query.deckItems.findFirst({
-          where: and(eq(deckItems.deckId, deckId), eq(deckItems.vocabularyId, vocabId)),
-        });
+    // Tạo mảng data để Bulk Insert
+    const insertData = vocabularyIds.map(vocabId => ({
+      deckId,
+      vocabularyId: vocabId,
+    }));
 
-        if (!exists) {
-          await tx.insert(deckItems).values({
-            deckId,
-            vocabularyId: vocabId,
-          });
-        }
-      }
-    });
+    // Chỉ với 1 câu query duy nhất, Drizzle sẽ đẩy toàn bộ array vào DB.
+    // Nếu từ đó đã tồn tại trong bộ (bị trùng Composite Key), nó sẽ tự động bỏ qua (onConflictDoNothing).
+    await db.insert(deckItems)
+      .values(insertData)
+      .onConflictDoNothing();
 
     return this.getDeckById(deckId);
   }
@@ -140,7 +143,6 @@ export class DeckService {
     const deck = await db.query.decks.findFirst({ where: eq(decks.id, deckId) });
     if (!deck) throw new Error('DECK_NOT_FOUND: Bộ thẻ không tồn tại.');
 
-    // Kiểm tra xem user đã từng đăng ký học bộ này chưa
     const existingProgress = await db.query.userDecks.findFirst({
       where: and(eq(userDecks.userId, userId), eq(userDecks.deckId, deckId)),
     });
@@ -149,7 +151,6 @@ export class DeckService {
       return { message: 'Bạn đang theo học bộ thẻ này rồi!', progress: existingProgress };
     }
 
-    // Ghi nhận bắt đầu học
     const [newProgress] = await db
       .insert(userDecks)
       .values({

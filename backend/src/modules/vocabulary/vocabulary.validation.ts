@@ -1,16 +1,14 @@
 import { z } from 'zod';
 
-// Schema cho danh sách từ vựng (lọc theo HSK, từ khóa, phân trang)
 export const getVocabulariesSchema = z.object({
   query: z.object({
-    page: z.string().optional().default('1').transform(Number),
-    limit: z.string().optional().default('20').transform(Number),
-    hskLevel: z.string().optional().transform((val) => (val ? Number(val) : undefined)),
-    keyword: z.string().optional(), // Tìm theo Hán tự hoặc Pinyin
-  }),
+    page: z.union([z.string(), z.number()]).optional(),
+    limit: z.union([z.string(), z.number()]).optional(),
+    hskLevel: z.union([z.string(), z.number()]).optional(),
+    keyword: z.string().optional(),
+  }).passthrough(),
 });
 
-// Schema cho việc thêm mới từ vựng kèm ý nghĩa và ví dụ
 export const createVocabularySchema = z.object({
   body: z.object({
     simplified: z.string().min(1, 'Hán tự giản thể là bắt buộc'),
@@ -19,22 +17,30 @@ export const createVocabularySchema = z.object({
     hskLevel: z.number().int().min(1).max(9),
     partOfSpeech: z.string().optional(),
     frequencyRank: z.number().int().optional(),
+
     audioUrl: z.string().url().optional(),
-    // Danh sách ý nghĩa (Việt/Anh)
+    imageUrl: z.string().url().optional(),
+
     meanings: z.array(
       z.object({
-        languageCode: z.enum(['vi', 'en']).default('vi'),
-        meaning: z.string().min(1, 'Nghĩa của từ không được để trống'),
+        languageCode: z.enum(['vi', 'en', 'es']).default('vi'),
+        meaning: z.string().min(1, 'Nghĩa không được trống'),
         displayOrder: z.number().int().default(0),
       })
     ).min(1, 'Phải có ít nhất 1 ý nghĩa'),
-    // Danh sách câu ví dụ
+    
     examples: z.array(
       z.object({
         chineseText: z.string().min(1),
         pinyinText: z.string().optional(),
-        translation: z.string().optional(),
         audioUrl: z.string().url().optional(),
+        // Cấu trúc dịch thuật đa ngôn ngữ mới
+        translations: z.array(
+          z.object({
+            languageCode: z.enum(['vi', 'en', 'es']).default('vi'),
+            translation: z.string().min(1),
+          })
+        ).min(1, 'Câu ví dụ phải có ít nhất 1 bản dịch'),
       })
     ).optional(),
   }),

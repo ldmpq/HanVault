@@ -46,7 +46,7 @@ const router = Router();
  *       200:
  *         description: Lấy danh sách thành công kèm phân trang.
  */
-router.get('/', validate(getVocabulariesSchema), VocabularyController.getAll);
+router.get('/', VocabularyController.getAll);
 
 /**
  * @swagger
@@ -107,6 +107,20 @@ router.get('/:id', VocabularyController.getById);
  *               audioUrl:
  *                 type: string
  *                 example: https://api.hanvault.com/audio/nihao.mp3
+ *               components:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     ch:
+ *                       type: string
+ *                       example: 女
+ *                     py:
+ *                       type: string
+ *                       example: nǚ
+ *                     meaning:
+ *                       type: string
+ *                       example: nữ (woman)
  *               meanings:
  *                 type: array
  *                 items:

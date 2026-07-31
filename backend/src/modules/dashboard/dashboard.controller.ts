@@ -6,196 +6,170 @@ import {
   userStreaks,
   userVocabularyProgress,
   vocabularies,
-  vocabularyMeanings,
   reviewLogs,
   quizzes,
 } from '../../shared/schema';
 
-export const getDashboardData = async (req: Request, res: Response) => {
+export const getDashboardData = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = (req as any).user?.userId;
 
     if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Unauthorized access',
-      });
+      res.status(401).json({ success: false, message: 'Unauthorized access' });
+      return;
     }
 
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
-
-    const endOfToday = new Date();
-    endOfToday.setHours(23, 59, 59, 999);
-
-    // =========================================================================
-    // QUERY 1: Lấy thông tin User & Daily Goal (Bảng: users)
-    // =========================================================================
-    const [userRecord] = await db
-      .select({
-        displayName: users.displayName,
-        dailyGoal: users.dailyGoal,
-        targetHskLevel: users.targetHskLevel,
-      })
-      .from(users)
-      .where(eq(users.id, userId));
-
-    const dailyTarget = userRecord?.dailyGoal || 20;
-
-    // =========================================================================
-    // QUERY 2: Đếm số từ đã học/ôn tập hôm nay (Bảng: reviewLogs)
-    // =========================================================================
-    const todayReviewCountResult = await db
-      .select({
-        count: sql<number>`count(distinct ${reviewLogs.vocabularyId})`,
-      })
-      .from(reviewLogs)
-      .where(
-        and(
-          eq(reviewLogs.userId, userId),
-          gte(reviewLogs.reviewedAt, startOfToday),
-          lte(reviewLogs.reviewedAt, endOfToday)
-        )
-      );
-
-    const dailyCurrent = Number(todayReviewCountResult[0]?.count || 0);
-
-    // =========================================================================
-    // QUERY 3: Lấy Chuỗi Ngày Học (Bảng: user_streaks)
-    // =========================================================================
-    const [streakRecord] = await db
-      .select({
-        currentStreak: userStreaks.currentStreak,
-      })
-      .from(userStreaks)
-      .where(eq(userStreaks.userId, userId));
-
-    const streakCount = streakRecord?.currentStreak || 0;
-
-    // =========================================================================
-    // QUERY 4: Lấy Flashcard cần học tiếp theo (Bảng: vocabularies + vocabulary_meanings)
-    // =========================================================================
-    // Ưu tiên lấy từ nằm trong danh sách SRS sắp tới hạn, nếu chưa có thì lấy ngẫu nhiên 1 từ
-    const [nextVocab] = await db
-      .select({
-        simplified: vocabularies.simplified,
-        pinyin: vocabularies.pinyin,
-        partOfSpeech: vocabularies.partOfSpeech,
-        meaning: vocabularyMeanings.meaning,
-      })
-      .from(vocabularies)
-      .leftJoin(
-        vocabularyMeanings,
-        and(
-          eq(vocabularies.id, vocabularyMeanings.vocabularyId),
-          eq(vocabularyMeanings.languageCode, 'vi') // Hoặc 'en' tùy chọn
-        )
-      )
-      .limit(1);
-
-    // =========================================================================
-    // QUERY 5: Đếm tổng số từ đã thành thạo (Bảng: user_vocabulary_progress)
-    // =========================================================================
-    const [masteredCountResult] = await db
-      .select({
-        count: sql<number>`count(*)`,
-      })
-      .from(userVocabularyProgress)
-      .where(
-        and(
-          eq(userVocabularyProgress.userId, userId),
-          eq(userVocabularyProgress.status, 'mastered')
-        )
-      );
-
-    const masteredCount = Number(masteredCountResult?.count || 0);
-
-    // =========================================================================
-    // QUERY 6: Lấy Bài Quiz Tiếp Theo (Bảng: quizzes)
-    // =========================================================================
-    const [upcomingQuiz] = await db
-      .select({
-        title: quizzes.title,
-      })
-      .from(quizzes)
-      .orderBy(desc(quizzes.id))
-      .limit(1);
-
-    // =========================================================================
-    // QUERY 7: Thống kê Tiến độ trong 7 ngày qua (Bảng: reviewLogs)
-    // =========================================================================
+    // Thiết lập mốc thời gian
+    const now = new Date();
+    const startOfToday = new Date(now.setHours(0, 0, 0, 0));
+    const endOfToday = new Date(now.setHours(23, 59, 59, 999));
+    
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
     sevenDaysAgo.setHours(0, 0, 0, 0);
 
-    // Lấy số lượng từ đã xem theo từng ngày trong 7 ngày gần nhất
-    const weeklyLogs = await db
-      .select({
-        dayOfWeek: sql<string>`TO_CHAR(${reviewLogs.reviewedAt}, 'Dy')`, // Lấy thứ: Mon, Tue, Wed...
-        dateStr: sql<string>`DATE(${reviewLogs.reviewedAt})`,
-        count: sql<number>`count(distinct ${reviewLogs.vocabularyId})`,
+    const [
+      userRecordArr,
+      todayReviewCountResult,
+      streakRecordArr,
+      masteredCountResult,
+      upcomingQuizArr,
+      weeklyLogs,
+      dueFlashcardArr
+    ] = await Promise.all([
+      // QUERY 1: User & Daily Goal
+      db.select({ displayName: users.displayName, dailyGoal: users.dailyGoal })
+        .from(users).where(eq(users.id, userId)),
+
+      // QUERY 2: Số từ ôn hôm nay
+      db.select({ count: sql<number>`count(distinct ${reviewLogs.vocabularyId})` })
+        .from(reviewLogs).where(
+          and(
+            eq(reviewLogs.userId, userId),
+            gte(reviewLogs.reviewedAt, startOfToday),
+            lte(reviewLogs.reviewedAt, endOfToday)
+          )
+        ),
+
+      // QUERY 3: Streak
+      db.select({ currentStreak: userStreaks.currentStreak })
+        .from(userStreaks).where(eq(userStreaks.userId, userId)),
+
+      // QUERY 5: Từ đã Mastered
+      db.select({ count: sql<number>`count(*)` })
+        .from(userVocabularyProgress)
+        .where(
+          and(
+            eq(userVocabularyProgress.userId, userId),
+            eq(userVocabularyProgress.status, 'mastered')
+          )
+        ),
+
+      // QUERY 6: Upcoming Quiz
+      db.select({ title: quizzes.title }).from(quizzes).orderBy(desc(quizzes.id)).limit(1),
+
+      // QUERY 7: Weekly Logs
+      db.select({
+          dateStr: sql<string>`TO_CHAR(${reviewLogs.reviewedAt}, 'YYYY-MM-DD')`, // Nhóm theo YYYY-MM-DD cho chính xác tuyệt đối
+          count: sql<number>`count(distinct ${reviewLogs.vocabularyId})::int`,
+        })
+        .from(reviewLogs)
+        .where(and(eq(reviewLogs.userId, userId), gte(reviewLogs.reviewedAt, sevenDaysAgo)))
+        .groupBy(sql`TO_CHAR(${reviewLogs.reviewedAt}, 'YYYY-MM-DD')`),
+
+      // QUERY 4: Flashcard sắp tới hạn (hoặc random nếu không có)
+      db.query.userVocabularyProgress.findFirst({
+        where: and(
+          eq(userVocabularyProgress.userId, userId),
+          lte(userVocabularyProgress.nextReviewAt, new Date())
+        ),
+        with: {
+          vocabulary: {
+            with: { meanings: { limit: 1 } }
+          }
+        }
       })
-      .from(reviewLogs)
-      .where(
-        and(
-          eq(reviewLogs.userId, userId),
-          gte(reviewLogs.reviewedAt, sevenDaysAgo)
-        )
-      )
-      .groupBy(
-        sql`TO_CHAR(${reviewLogs.reviewedAt}, 'Dy')`,
-        sql`DATE(${reviewLogs.reviewedAt})`
-      );
+    ]);
 
-    // Map dữ liệu thống kê tuần
-    const daysMap = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-    const maxCount = Math.max(...weeklyLogs.map((item) => Number(item.count)), 1);
+    // =========================================================================
+    // XỬ LÝ DỮ LIỆU SAU KHI QUERY
+    // =========================================================================
+    const dailyTarget = userRecordArr[0]?.dailyGoal || 20;
+    const dailyCurrent = Number(todayReviewCountResult[0]?.count || 0);
+    const streakCount = streakRecordArr[0]?.currentStreak || 0;
+    const masteredCount = Number(masteredCountResult[0]?.count || 0);
 
-    const weeklyProgress = daysMap.map((dayLabel, index) => {
-      const match = weeklyLogs[index];
-      const count = match ? Number(match.count) : 0;
+    // =========================================================================
+    // FIX LOGIC BIỂU ĐỒ 7 NGÀY
+    // =========================================================================
+    // Tạo mảng 7 ngày chuẩn (từ quá khứ đến hôm nay)
+    const maxCount = Math.max(...weeklyLogs.map(item => Number(item.count)), 1);
+    const weeklyProgress = [];
+    const dayNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S']; // Map Chủ Nhật (0) -> Thứ Bảy (6)
+    
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateString = d.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+      const dayLabel = dayNames[d.getDay()];
+
+      // Tìm xem ngày này có dữ liệu trong SQL trả về không
+      const matchedLog = weeklyLogs.find(log => log.dateStr === dateString);
+      const count = matchedLog ? matchedLog.count : 0;
       const percentage = Math.round((count / maxCount) * 100);
 
-      return {
+      weeklyProgress.push({
         day: dayLabel,
-        percentage: percentage > 0 ? percentage : 15, // Đặt tối thiểu 15% để có chiều cao thanh UI
+        percentage: percentage > 0 ? percentage : 15,
         isPeak: percentage === 100 && count > 0,
-      };
-    });
+      });
+    }
 
     // =========================================================================
-    // TỔNG HỢP VÀ TRẢ VỀ RESPONSE
+    // LOGIC FLASHCARD TIẾP THEO
     // =========================================================================
-    return res.status(200).json({
+    let nextCardData = {
+      simplified: '你好',
+      pinyin: 'nǐ hǎo',
+      meaning: 'Xin chào',
+      partOfSpeech: 'Greeting',
+    };
+
+    if (dueFlashcardArr && dueFlashcardArr.vocabulary) {
+      const v = dueFlashcardArr.vocabulary;
+      nextCardData = {
+        simplified: v.simplified,
+        pinyin: v.pinyin,
+        meaning: v.meanings.length > 0 ? v.meanings[0].meaning : 'Chưa cập nhật',
+        partOfSpeech: v.partOfSpeech || 'Từ vựng',
+      };
+    }
+
+    // =========================================================================
+    // TRẢ VỀ RESPONSE
+    // =========================================================================
+    res.status(200).json({
       success: true,
       message: 'Dashboard data fetched successfully',
       data: {
-        userName: userRecord?.displayName || 'Learner',
-        dailyGoal: {
-          current: dailyCurrent,
-          target: dailyTarget,
-        },
+        userName: userRecordArr[0]?.displayName || 'Learner',
+        dailyGoal: { current: dailyCurrent, target: dailyTarget },
         streak: streakCount,
-        flashcard: {
-          simplified: nextVocab?.simplified || '你好',
-          pinyin: nextVocab?.pinyin || 'nǐ hǎo',
-          meaning: nextVocab?.meaning || 'Xin chào',
-          partOfSpeech: nextVocab?.partOfSpeech || 'Thành ngữ / Cụm từ',
-        },
+        flashcard: nextCardData,
         nextQuiz: {
-          date: 'Tomorrow',
-          title: upcomingQuiz?.title || 'HSK 3: Unit 4 Vocabulary',
+          date: 'Ngày mai',
+          title: upcomingQuizArr[0]?.title || 'Chưa có bài kiểm tra',
         },
         mastered: {
           count: masteredCount,
-          percentage: 12, // Có thể tính % theo công thức (masteredCount / totalWordsInHsk) * 100
+          percentage: 12, 
         },
         weeklyProgress,
       },
     });
   } catch (error: any) {
     console.error('Error fetching dashboard data:', error);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       message: 'Internal Server Error',
       error: error.message,

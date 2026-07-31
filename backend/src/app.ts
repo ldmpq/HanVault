@@ -7,6 +7,7 @@ import authRoutes from './modules/auth/auth.route';
 import vocabularyRoutes from './modules/vocabulary/vocabulary.route';
 import srsRoutes from './modules/srs/srs.route';
 import dashboardRoutes from './modules/dashboard/dashboard.route';
+import libraryRoutes from './modules/library/library.route';
 
 const app: Application = express();
 
@@ -33,6 +34,9 @@ app.use('/api/dashboard', dashboardRoutes);
 
 // Vocabulary routes
 app.use('/api/vocabularies', vocabularyRoutes);
+
+// Library routes
+app.use('/api/library', libraryRoutes);
 
 // SRS Study routes
 app.use('/api/srs', srsRoutes);

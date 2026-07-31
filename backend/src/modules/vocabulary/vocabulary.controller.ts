@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
 import { VocabularyService } from './vocabulary.service';
 import { GetVocabulariesQuery, CreateVocabularyInput } from './vocabulary.validation';
+import { eq } from 'drizzle-orm';
+import { db } from '../../config/database';
+import { } from '../../shared/schema';
 
 export class VocabularyController {
   static async getAll(req: Request, res: Response): Promise<void> {
@@ -34,7 +37,11 @@ export class VocabularyController {
         res.status(404).json({ success: false, message: error.message.split(': ')[1] });
         return;
       }
-      throw error;
+      res.status(500).json({ 
+        success: false, 
+        message: 'Lỗi server khi lấy chi tiết từ vựng',
+        error: error.message 
+      });
     }
   }
 

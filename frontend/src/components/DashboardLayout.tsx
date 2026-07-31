@@ -1,8 +1,7 @@
-import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const logout = useAuthStore((state) => state.logout);
@@ -13,10 +12,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   const navItems = [
-    { name: 'Dashboard', path: '/dashboard' },
-    { name: 'Library', path: '/library' },
-    { name: 'Review', path: '/review' },
-    { name: 'Progress', path: '/progress' },
+    { name: 'Trang chủ', path: '/dashboard' },
+    { name: 'Từ điển', path: '/dictionary' },
+    { name: 'Dịch thuật', path: '/translate' },
+    { name: 'Bộ thẻ', path: '/library' },
+    { name: 'Luyện tập', path: '/review' },
+    { name: 'Tiến trình', path: '/progress' },
+    { name: 'Khóa học', path: '/courses' },
   ];
 
   return (
@@ -24,12 +26,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       
       {/* Header / Top Navigation */}
       <header className="w-full flex items-center justify-between py-6 px-8 md:px-16 max-w-[1400px] mx-auto">
-        <div className="text-2xl font-bold text-[#A82B2B]">Mastery</div>
+        <Link to="/dashboard" className="text-2xl font-bold text-[#A82B2B] tracking-tight">
+          HanVault
+        </Link>
         
         {/* Nav Links (Hidden on small mobile) */}
         <nav className="hidden md:flex gap-10">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive = location.pathname === item.path || 
+                             (item.path !== '/' && location.pathname.startsWith(`${item.path}/`));
             return (
               <Link 
                 key={item.name} 
@@ -52,7 +57,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             onClick={handleLogout}
             className="text-xs font-semibold text-gray-600 hover:text-[#A82B2B] uppercase tracking-wide transition-colors"
           >
-            Logout
+            Đăng xuất
           </button>
           <div className="w-10 h-10 rounded-full overflow-hidden border border-gray-200">
             <img 
@@ -66,19 +71,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Main Content Area */}
       <main className="flex-1 w-full max-w-[1400px] mx-auto px-8 md:px-16 py-8">
-        {children}
+        <Outlet />
       </main>
 
       {/* Footer */}
       <footer className="w-full border-t border-gray-200 mt-16 bg-white">
         <div className="max-w-[1400px] mx-auto px-8 md:px-16 py-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
           <div className="max-w-xs">
-            <div className="text-xl font-bold text-[#A82B2B] mb-4">Mastery</div>
+            <div className="text-xl font-bold text-[#A82B2B] mb-4">HanVault</div>
             <p className="text-sm text-gray-600 mb-6 leading-relaxed">
               Calmly Master the Tongue. A premium learning environment for sophisticated Mandarin students.
             </p>
             <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">
-              © 2024 Mastery Mandarin. All rights reserved.
+              © 2026 HanVault. All rights reserved.
             </p>
           </div>
 
