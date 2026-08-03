@@ -12,6 +12,6 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true
   },
-  "include": ["src/**/*", "src/seeder.ts"],
+  "include": ["src/**/*", "src/scripts/seeder.ts"],
   "exclude": ["node_modules", "dist"]
 }

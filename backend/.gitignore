@@ -1,3 +1,4 @@
+# Ignore node_modules, environment files, build output, and coverage reports
 node_modules/
 .env
 dist/

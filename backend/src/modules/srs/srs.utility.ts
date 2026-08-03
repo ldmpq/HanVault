@@ -1,15 +1,17 @@
 /**
- * Thuật toán Spaced Repetition (SuperMemo-2)
+ * Thuật toán Spaced Repetition (SuperMemo-2 Nâng Cao - Có xử lý Late Review & Capping)
  * @param quality Đánh giá chất lượng nhớ (0-5)
  * @param prevInterval Số ngày chờ của lần ôn tập trước
  * @param prevRepetitions Số lần lặp lại thành công liên tiếp
  * @param prevEaseFactor Hệ số độ dễ của từ vựng
+ * @param daysSinceLastReview Số ngày THỰC TẾ trôi qua kể từ lần học cuối (Xử lý Late Review)
  */
 export const calculateSM2 = (
   quality: number,
   prevInterval: number,
   prevRepetitions: number,
-  prevEaseFactor: number
+  prevEaseFactor: number,
+  daysSinceLastReview: number = prevInterval
 ): { interval: number; repetitions: number; easeFactor: number } => {
   let interval = prevInterval;
   let repetitions = prevRepetitions;
@@ -22,7 +24,8 @@ export const calculateSM2 = (
     } else if (repetitions === 1) {
       interval = 6; // Lần 2 cách 6 ngày
     } else {
-      interval = Math.round(interval * easeFactor); // Các lần sau nhân với hệ số
+      const effectiveInterval = Math.max(prevInterval, daysSinceLastReview);
+      interval = Math.round(effectiveInterval * easeFactor); 
     }
     repetitions++;
   } 
@@ -34,11 +37,12 @@ export const calculateSM2 = (
 
   // Cập nhật hệ số Ease Factor (EF)
   easeFactor = easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
-  
-  // EF không bao giờ được phép tụt xuống dưới 1.3 (để tránh vòng lặp ôn tập vô tận)
-  if (easeFactor < 1.3) {
-    easeFactor = 1.3;
-  }
+
+  if (easeFactor < 1.3) easeFactor = 1.3;
+  if (easeFactor > 3.0) easeFactor = 3.0; // Trần EF tối đa là 3.0 để tránh tăng quá đà
+
+  const MAX_INTERVAL = 3650; // Giới hạn tối đa 10 năm (Tránh lỗi tràn số)
+  if (interval > MAX_INTERVAL) interval = MAX_INTERVAL;
 
   return { interval, repetitions, easeFactor };
 };

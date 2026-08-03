@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore';
+import { useAuthStore } from '../shared/store/authStore';
 
 export default function DashboardLayout() {
   const location = useLocation();

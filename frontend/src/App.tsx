@@ -4,7 +4,8 @@ import Landing from './pages/Landing';
 
 import SignIn from './pages/SignIn';
 import Register from './pages/Register';
-import ProtectedRoute from './components/ProtectedRoute';
+// import ForgotPassword from './pages/ForgotPassword';
+import ProtectedRoute from './shared/router/ProtectedRoute';
 
 import DashboardLayout from './components/DashboardLayout';
 import Dashboard from './pages/Dashboard';

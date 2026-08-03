@@ -1,22 +1,16 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Play, Star, Heart, ArrowRight, ChevronRight } from 'lucide-react';
-import axiosClient from '../shared/api/axiosClient';
+import axiosClient from '../shared/lib/axiosClient';
 import SearchFilterBar from '../components/SearchFilterBar';
-
-interface Word {
-  id: number;
-  simplified: string;
-  pinyin: string;
-  meaning: string;
-}
+import type { Vocabulary } from '../shared/types/vocabulary.types';
 
 export default function DeckDetail() {
   const { deckId } = useParams();
   const navigate = useNavigate();
 
   const [deckInfo, setDeckInfo] = useState<any>(null);
-  const [words, setWords] = useState<Word[]>([]);
+  const [words, setWords] = useState<Vocabulary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -55,15 +49,15 @@ export default function DeckDetail() {
   // Giả lập dữ liệu thống kê (sau này có thể nối API thật)
   const stats = {
     total: words.length,
-    mastered: Math.floor(words.length * 0.2), // Giả lập 20% đã thuộc
-    learning: Math.floor(words.length * 0.1), // Giả lập 10% đang học
+    mastered: Math.floor(words.length * 0.2), 
+    learning: Math.floor(words.length * 0.1), 
     progressPercent: 24
   };
 
   return (
     <div className="max-w-[1200px] mx-auto pb-24 animate-fade-in font-sans">
       
-      {/* ================= BREADCRUMBS (Giữ nguyên gốc) ================= */}
+      {/* ================= BREADCRUMBS ================= */}
       <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-8 pt-4">
         <span className="cursor-pointer hover:text-gray-900 transition-colors" onClick={() => navigate('/library')}>
           Bộ thẻ
@@ -72,10 +66,10 @@ export default function DeckDetail() {
         <span className="text-gray-900">{deckInfo.name}</span>
       </div>
 
-      {/* ================= HEADER SECTION (HERO - Nâng cấp theo ảnh) ================= */}
+      {/* ================= HEADER SECTION ================= */}
       <div className="flex flex-col lg:flex-row gap-10 lg:gap-16 mb-16">
         
-        {/* Ảnh bìa (Cột trái) */}
+        {/* Ảnh bìa */}
         <div className="w-full lg:w-[420px] shrink-0 relative rounded-[2rem] overflow-hidden shadow-sm bg-white aspect-[3/4]">
           <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-4 py-1.5 rounded-full z-10 shadow-sm">
             <span className="text-[#A82B2B] text-xs font-bold tracking-wide">HSK {deckInfo.hskLevel || 4}</span>
@@ -87,7 +81,7 @@ export default function DeckDetail() {
           />
         </div>
 
-        {/* Thông tin chi tiết (Cột phải) */}
+        {/* Thông tin chi tiết */}
         <div className="flex-1 flex flex-col justify-center">
           
           <div className="flex items-center gap-4 mb-4">
@@ -108,7 +102,7 @@ export default function DeckDetail() {
             {deckInfo.description || 'Accelerate your professional communication skills with this comprehensive deck focused on modern business terminology, negotiations, and formal workplace etiquette. Designed for intermediate to advanced learners seeking fluency in corporate environments.'}
           </p>
 
-          {/* Hàng Thống Kê (4 ô vuông) */}
+          {/* Khôi phục Hàng Thống Kê (4 ô vuông) */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
             <div className="bg-white rounded-2xl p-5 shadow-[0_2px_15px_rgb(0,0,0,0.03)] border border-gray-50 flex flex-col items-center justify-center text-center">
               <span className="text-3xl font-bold text-[#A82B2B] mb-1">{stats.total}</span>
@@ -141,7 +135,6 @@ export default function DeckDetail() {
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex gap-4">
             <button 
               onClick={() => navigate(`/review/${deckId}`)}
@@ -154,13 +147,11 @@ export default function DeckDetail() {
               <Heart className="w-4 h-4" /> Favorite
             </button>
           </div>
-
         </div>
       </div>
 
       {/* ================= VOCABULARY PREVIEW SECTION ================= */}
       <div className="pt-8 border-t border-gray-100">
-        
         <div className="flex justify-between items-end mb-8">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-1">Vocabulary Preview</h2>
@@ -171,7 +162,6 @@ export default function DeckDetail() {
           </button>
         </div>
 
-        {/* Thanh Search (Giữ lại để đảm bảo logic tìm kiếm) */}
         <div className="mb-8">
           <SearchFilterBar
             value={searchTerm}
@@ -181,7 +171,6 @@ export default function DeckDetail() {
           />
         </div>
 
-        {/* WORD GRID (Tối giản theo thiết kế mới) */}
         {words.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-2xl text-gray-400 shadow-[0_2px_15px_rgb(0,0,0,0.03)]">
             Bộ thẻ này hiện chưa có từ vựng nào.

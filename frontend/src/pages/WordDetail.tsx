@@ -1,37 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { Volume2, GraduationCap, Edit3, PlayCircle, RotateCcw, Play, ChevronRight } from 'lucide-react';
-import axiosClient from '../shared/api/axiosClient';
+import axiosClient from '../shared/lib/axiosClient';
 import HanziWriter from 'hanzi-writer';
-
-interface WordDetailData {
-  hskLevel: number;
-  id: number;
-  character: string;
-  pinyin: string;
-  meaning: string;
-  partOfSpeech?: string;
-  examples: { ch: string; py: string; en: string }[];
-  components: { ch: string; py: string; meaning: string }[];
-  mastery: number;
-  lastReviewed: string;
-  mnemonic: string;
-}
-
-const highlightTargetWord = (text: string, target: string) => {
-  if (!target || !text.includes(target)) return text;
-  const parts = text.split(target);
-  return (
-    <>
-      {parts.map((part, i) => (
-        <span key={i}>
-          {part}
-          {i < parts.length - 1 && <span className="text-[#A82B2B]">{target}</span>}
-        </span>
-      ))}
-    </>
-  );
-};
+import type { Vocabulary } from '../shared/types/vocabulary.types';
+import { useTextToSpeech } from '../shared/hooks/useTextToSpeech';
+import { highlightTargetWord } from '../shared/utils/text.utils';
 
 export default function WordDetail() {
   const { id } = useParams();
@@ -41,27 +15,23 @@ export default function WordDetail() {
   const deckId = location.state?.deckId || '';
   const deckName = location.state?.deckName || 'Chi tiết bộ thẻ';
 
-  const [word, setWord] = useState<WordDetailData | null>(null);
+  const [word, setWord] = useState<Vocabulary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { playAudio } = useTextToSpeech();
   
-  // States cho Hanzi Writer
   const [activeStrokeChar, setActiveStrokeChar] = useState<string>('');
   const writerRef = useRef<HTMLDivElement>(null);
   const [writerInstance, setWriterInstance] = useState<HanziWriter | null>(null);
-  
-  // State lưu trữ số nét và bộ thủ động
   const [activeDetails, setActiveDetails] = useState({ strokes: 0, radical: '...' });
 
-  // 1. FETCH DỮ LIỆU TỪ VỰNG TỪ BACKEND
   useEffect(() => {
     const fetchWordDetail = async () => {
       try {
         const response = await axiosClient.get(`/vocabularies/${id}`);
         if (response.data.success) {
-          const data = response.data.data;
-          setWord(data);
-          if (data.character) {
-            setActiveStrokeChar(data.character[0]);
+          setWord(response.data.data);
+          if (response.data.data.character) {
+            setActiveStrokeChar(response.data.data.character[0]);
           }
         }
       } catch (error) {
@@ -73,102 +43,58 @@ export default function WordDetail() {
     if (id) fetchWordDetail();
   }, [id]);
 
-  // 2. KHỞI TẠO HANZI WRITER
   useEffect(() => {
     if (!writerRef.current || !activeStrokeChar) return;
 
     writerRef.current.innerHTML = '';
-
     const writer = HanziWriter.create(writerRef.current, activeStrokeChar, {
-      width: 240,
-      height: 240,
-      padding: 15,
-      strokeAnimationSpeed: 1.5,
-      delayBetweenStrokes: 150,
-      strokeColor: '#A82B2B',       
-      radicalColor: '#E09353',      
-      showOutline: true,
-      outlineColor: '#E5E7EB',      
+      width: 240, height: 240, padding: 15, strokeAnimationSpeed: 1.5, delayBetweenStrokes: 150,
+      strokeColor: '#A82B2B', radicalColor: '#E09353', showOutline: true, outlineColor: '#E5E7EB',
       charDataLoader: (char, onComplete) => {
         fetch(`/hanzi-writer-data/${char}.json`)
           .then(res => res.json())
           .then(onComplete)
-          .catch((err) => {
-            console.warn('Lỗi load local data, đang dùng CDN fallback...', err);
+          .catch(() => {
             fetch(`https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0/${char}.json`)
               .then(res => res.json())
               .then(onComplete);
           });
       }
     });
-
     setWriterInstance(writer);
   }, [activeStrokeChar]);
 
-  // 3. TỰ ĐỘNG LẤY SỐ NÉT & BỘ THỦ (KÈM FALLBACK CHỐNG LỖI HIỂN THỊ)
   useEffect(() => {
     if (!activeStrokeChar) return;
-
     const fetchDynamicCharData = async () => {
       let strokesCount = 0;
-      
       try {
         const res = await fetch(`/hanzi-writer-data/${activeStrokeChar}.json`);
-        if (!res.ok) throw new Error('Local miss');
-        const data = await res.json();
-        strokesCount = data.strokes ? data.strokes.length : 0; 
+        strokesCount = (await res.json()).strokes?.length || 0; 
       } catch (err) {
-        try {
-          const cdnRes = await fetch(`https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0/${activeStrokeChar}.json`);
-          const cdnData = await cdnRes.json();
-          strokesCount = cdnData.strokes ? cdnData.strokes.length : 0;
-        } catch (error) {
-          strokesCount = 0;
-        }
+        try { strokesCount = (await (await fetch(`https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0/${activeStrokeChar}.json`)).json()).strokes?.length || 0; } catch (e) {}
       }
 
-      // Xử lý Fallback cho Hình thái (Bộ thủ)
       const component = word?.components?.find(c => c.ch === activeStrokeChar);
       let radicalText = 'Chưa rõ';
-      
       if (component) {
         if (component.meaning && component.meaning !== 'Bộ thủ/Thành phần') {
           radicalText = `${component.ch} (${component.meaning})`;
         } else {
-          radicalText = component.ch; // Chỉ hiện chữ nếu backend chưa có data nghĩa của chữ đó
+          radicalText = component.ch;
         }
       }
-
-      setActiveDetails({
-        strokes: strokesCount,
-        radical: radicalText
-      });
+      setActiveDetails({ strokes: strokesCount, radical: radicalText });
     };
-
     fetchDynamicCharData();
   }, [activeStrokeChar, word]);
 
-  // 4. LOGIC AUDIO (EDGE TTS)
-  const handlePlayAudio = async (text: string) => {
-    if (!text) return;
-    try {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'zh-CN'; 
-      utterance.rate = 0.9;     
-      window.speechSynthesis.speak(utterance);
-    } catch (error) {
-      console.error("Lỗi phát âm thanh:", error);
-    }
-  };
-
   if (isLoading) return <div className="text-center py-20 text-gray-500 font-medium">Đang tải chi tiết từ vựng...</div>;
-  if (!word) return <div className="text-center py-20 text-red-500 font-medium">Không tìm thấy từ vựng này!</div>;
+  if (!word || !word.character) return <div className="text-center py-20 text-red-500 font-medium">Không tìm thấy từ vựng này!</div>;
 
   const chars = word.character.split('');
 
-  // Hàm render Breadcrumbs động dựa vào nguồn truy cập
   const renderBreadcrumbs = () => {
-    // 1. Nếu người dùng click sang từ trang Từ điển
     if (location.state?.from === 'dictionary') {
       return (
         <div className="flex items-center gap-2 text-xs font-bold text-gray-500 mb-8 tracking-wide">
@@ -178,23 +104,17 @@ export default function WordDetail() {
         </div>
       );
     }
-
-    // 2. Nếu người dùng click sang từ trang Bộ thẻ
     if (deckId) {
       return (
         <div className="flex items-center gap-2 text-xs font-bold text-gray-500 mb-8 tracking-wide">
           <Link to="/library" className="hover:text-gray-900 transition-colors">Bộ thẻ</Link>
           <ChevronRight className="w-3.5 h-3.5" />
-          <Link to={`/deck/${deckId}`} className="hover:text-gray-900 transition-colors">
-            {deckName}
-          </Link>
+          <Link to={`/deck/${deckId}`} className="hover:text-gray-900 transition-colors">{deckName}</Link>
           <ChevronRight className="w-3.5 h-3.5" />
           <span className="text-gray-900">{word.character}</span>
         </div>
       );
     }
-
-    // 3. Fallback: Nếu truy cập thẳng bằng đường link (không có state)
     return (
       <div className="flex items-center gap-2 text-xs font-bold text-gray-500 mb-8 tracking-wide">
         <Link to="/" className="hover:text-gray-900 transition-colors">Trang chủ</Link>
@@ -207,14 +127,12 @@ export default function WordDetail() {
   return (
     <div className="max-w-[1300px] mx-auto pb-24 animate-fade-in">
       
-      {/* BREADCRUMBS */}
       {renderBreadcrumbs()}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        {/* ================= CỘT TRÁI (8 Cols) ================= */}
+        {/* ================= CỘT TRÁI ================= */}
         <div className="lg:col-span-8 space-y-8">
-          
           <div className="bg-gradient-to-br from-white to-red-50/40 rounded-[2rem] p-10 shadow-[0_4px_20px_rgb(0,0,0,0.02)] border border-red-50 flex flex-col md:flex-row justify-between relative overflow-hidden">
             <div>
               <div className="flex items-center gap-3 mb-6">
@@ -227,7 +145,7 @@ export default function WordDetail() {
                   {word.character}
                 </h1>
                 <button 
-                  onClick={() => handlePlayAudio(word.character)}
+                  onClick={(e) => playAudio(e, word.character || '')}
                   className="w-12 h-12 bg-gray-100 hover:bg-red-100 text-[#A82B2B] rounded-full flex items-center justify-center transition-colors mb-4"
                 >
                   <Volume2 className="w-6 h-6" />
@@ -249,7 +167,6 @@ export default function WordDetail() {
                 <Edit3 className="w-5 h-5" /> Luyện viết
               </button>
             </div>
-            
             <div className="absolute -right-20 -top-20 w-64 h-64 bg-red-100/50 rounded-full blur-3xl pointer-events-none"></div>
           </div>
 
@@ -261,11 +178,9 @@ export default function WordDetail() {
                   <div key={idx} className="bg-white rounded-[1.5rem] p-8 shadow-sm border border-gray-100 flex items-center justify-between group hover:shadow-md transition-shadow cursor-pointer">
                     <div className="flex-1 pr-6">
                       <p className="text-2xl text-gray-900 mb-3 font-medium">
-                        {highlightTargetWord(ex.ch, word.character)}
+                        {highlightTargetWord(ex.ch, word.character || '')}
                       </p>
                       {ex.py && <p className="text-gray-500 mb-3 text-sm">{ex.py}</p>}
-                      
-                      {/* Xử lý Fallback khi Database chưa nhập phần dịch nghĩa */}
                       {ex.en ? (
                         <p className="text-gray-800 font-medium">{ex.en}</p>
                       ) : (
@@ -273,7 +188,7 @@ export default function WordDetail() {
                       )}
                     </div>
                     <button 
-                      onClick={() => handlePlayAudio(ex.ch)}
+                      onClick={(e) => playAudio(e, ex.ch)}
                       className="w-10 h-10 rounded-full flex items-center justify-center text-gray-400 group-hover:text-[#A82B2B] border border-gray-200 group-hover:border-[#A82B2B] transition-colors shrink-0"
                     >
                       <PlayCircle className="w-5 h-5" />
@@ -289,12 +204,10 @@ export default function WordDetail() {
           </div>
         </div>
 
-        {/* ================= CỘT PHẢI (4 Cols) - KHU VỰC LUYỆN CHỮ ================= */}
+        {/* ================= CỘT PHẢI - LUYỆN CHỮ ================= */}
         <div className="lg:col-span-4 space-y-8">
           
           <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100">
-            
-            {/* 1. STROKE ORDER (TOP) */}
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-[#0D1B2A]">Thứ tự nét bút</h2>
               <div className="flex bg-gray-50/80 rounded-lg p-1 border border-gray-100">
@@ -312,7 +225,6 @@ export default function WordDetail() {
               </div>
             </div>
 
-            {/* HANZI WRITER CANVAS */}
             <div className="w-full aspect-square bg-[#FDFBF9] rounded-2xl relative border border-gray-100 overflow-hidden flex items-center justify-center group mb-8">
               <div className="absolute inset-0 opacity-10 pointer-events-none z-0">
                 <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
@@ -325,13 +237,9 @@ export default function WordDetail() {
               
               <div ref={writerRef} className="z-10 cursor-crosshair"></div>
 
-              {/* Action Buttons */}
               <div className="absolute bottom-6 left-0 right-0 flex justify-center items-center gap-4 z-20">
                 <button 
-                  onClick={() => {
-                    writerInstance?.hideCharacter();
-                    setTimeout(() => writerInstance?.showCharacter(), 50);
-                  }}
+                  onClick={() => { writerInstance?.hideCharacter(); setTimeout(() => writerInstance?.showCharacter(), 50); }}
                   className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-gray-500 hover:text-[#A82B2B] shadow-sm border border-gray-100 transition-colors"
                 >
                   <RotateCcw className="w-5 h-5" />
@@ -345,21 +253,16 @@ export default function WordDetail() {
               </div>
             </div>
 
-            {/* 2. CHARACTER DETAILS (BOTTOM) */}
             <div className="border-t border-dashed border-gray-200 pt-8">
               <h2 className="text-xl font-bold text-[#0D1B2A] mb-6">Chi tiết ký tự</h2>
               
               <div className="flex gap-4 mb-6">
                 <div className="flex-1 bg-[#FDFBF9] rounded-2xl p-5 flex flex-col items-center justify-center text-center">
-                  <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2">
-                    Số nét ({activeStrokeChar})
-                  </span>
+                  <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2">Số nét ({activeStrokeChar})</span>
                   <span className="text-3xl font-bold text-[#A82B2B]">{activeDetails.strokes}</span>
                 </div>
                 <div className="flex-1 bg-[#FDFBF9] rounded-2xl p-5 flex flex-col items-center justify-center text-center">
-                  <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2">
-                    Hình thái ({activeStrokeChar})
-                  </span>
+                  <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2">Hình thái ({activeStrokeChar})</span>
                   <span className="text-base font-bold text-[#0D1B2A] mt-1">{activeDetails.radical}</span>
                 </div>
               </div>
@@ -375,7 +278,6 @@ export default function WordDetail() {
             </div>
 
           </div>
-
         </div>
       </div>
     </div>
