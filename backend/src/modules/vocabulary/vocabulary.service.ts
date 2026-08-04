@@ -3,6 +3,17 @@ import { db } from '../../config/database';
 import { vocabularies, vocabularyMeanings, exampleSentences, exampleSentenceTranslations, media, characters, vocabularyCharacters } from '../../shared/schema';
 import { GetVocabulariesQuery, CreateVocabularyInput } from './vocabulary.validation';
 
+const normalizeSearchString = (str: string) => {
+  if (!str) return '';
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "")
+    .replace(/ü/g, "v")
+    .toLowerCase()
+    .trim();
+};
+
 export class VocabularyService {
   static async getVocabularies(params: GetVocabulariesQuery) {
     const page = Number(params.page) || 1;
@@ -10,21 +21,36 @@ export class VocabularyService {
     const hskLevel = params.hskLevel ? Number(params.hskLevel) : undefined;
 
     const keyword = params.keyword?.trim() || '';
-
     const offset = (page - 1) * limit;
 
     const conditions = [];
+    
+    // 1. Lọc theo cấp độ HSK
     if (hskLevel) conditions.push(eq(vocabularies.hskLevel, hskLevel));
     
+    // 2. Thuật toán tìm kiếm đa tầng
     if (keyword) {
+      const asciiKeyword = normalizeSearchString(keyword);
+
       conditions.push(
         or(
+          // T1: Tìm theo Hán tự (Chính xác hoặc chứa ký tự)
           ilike(vocabularies.simplified, `%${keyword}%`), 
+          
+          // T2: Tìm theo Pinyin gốc (Trường hợp người dùng copy/paste Pinyin chuẩn có dấu)
           ilike(vocabularies.pinyin, `%${keyword}%`),
+          
+          // T3 (FUZZY PINYIN): Tìm theo Pinyin không dấu, viết liền. 
+          // VD: user gõ vội "nihao" hoặc "ni hao"
+          ilike(vocabularies.pinyinAscii, `%${asciiKeyword}%`),
+          
+          // T4: Tìm kiếm trong bảng Nghĩa tiếng Việt
           sql`EXISTS (
             SELECT 1 FROM vocabulary_meanings 
             WHERE vocabulary_meanings.vocabulary_id = vocabularies.id 
-            AND vocabulary_meanings.meaning ILIKE ${`%${keyword}%`}
+            AND (
+              unaccent(vocabulary_meanings.meaning) ILIKE unaccent(${`%${keyword}%`})
+            )
           )`
         )
       );
@@ -65,16 +91,44 @@ export class VocabularyService {
         examples: {
           with: { translations: true },
         },
+        relatedTo: { with: { targetVocab: true } },
+        relatedFrom: { with: { sourceVocab: true } },
       },
     });
 
     if (!vocab) throw new Error('VOCAB_NOT_FOUND: Không tìm thấy từ vựng này trong hệ thống.');
+
+    const synonyms: any[] = [];
+    const antonyms: any[] = [];
+
+    const processRelation = (relationEntry: any, isSource: boolean) => {
+      const targetWord = isSource ? relationEntry.targetVocab : relationEntry.sourceVocab;
+      if (!targetWord) return;
+      
+      const mappedWord = {
+        id: targetWord.id,
+        character: targetWord.simplified,
+        pinyin: targetWord.pinyin
+      };
+
+      if (relationEntry.relationType === 'synonym') synonyms.push(mappedWord);
+      if (relationEntry.relationType === 'antonym') antonyms.push(mappedWord);
+    };
+
+    vocab.relatedTo?.forEach(rel => processRelation(rel, true));
+    vocab.relatedFrom?.forEach(rel => processRelation(rel, false));
 
     // ADAPTER: Chuyển đổi dữ liệu cho Frontend
     return {
       id: vocab.id,
       character: vocab.simplified,
       pinyin: vocab.pinyin,
+      hskLevel: vocab.hskLevel,
+      partOfSpeech: vocab.partOfSpeech,
+      sinoVietnamese: vocab.sinoVietnamese || null,
+      usageNote: vocab.usageNote || null,
+      synonyms,
+      antonyms,
       audioUrl: vocab.audioMedia?.url || null,
       meaning: vocab.meanings.length > 0 ? vocab.meanings[0].meaning : 'Chưa cập nhật',
       
@@ -82,6 +136,7 @@ export class VocabularyService {
         ch: vc.character.hanzi,
         py: vc.character.pinyin || '',
         meaning: vc.character.radicalMeaning || 'Thành phần',
+        sinoVietnamese: vc.character.sinoVietnamese || 'Chưa cập nhật',
       })),
       
       examples: vocab.examples.map((ex) => {

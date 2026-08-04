@@ -15,6 +15,7 @@ export const lessonProgressStatusEnum = pgEnum('lesson_progress_status', ['in_pr
 export const notificationTypeEnum = pgEnum('notification_type', ['daily_reminder', 'streak_warning', 'achievement', 'system']);
 export const reportStatusEnum = pgEnum('report_status', ['pending', 'reviewed', 'resolved', 'rejected']);
 export const oauthProviderEnum = pgEnum('oauth_provider', ['google', 'facebook']);
+export const relationTypeEnum = pgEnum('relation_type', ['synonym', 'antonym', 'related']);
 
 // ==========================================
 // 0. NHÓM: MEDIA (QUẢN LÝ FILE TẬP TRUNG)
@@ -82,6 +83,7 @@ export const characters = pgTable('characters', {
   unicode: varchar('unicode', { length: 10 }),
   frequencyRank: integer('frequency_rank'),
   audioMediaId: bigint('audio_media_id', { mode: 'number' }).references(() => media.id),
+  sinoVietnamese: varchar('sino_vietnamese', { length: 100 }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().$onUpdate(() => new Date()),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
@@ -124,6 +126,9 @@ export const vocabularies = pgTable('vocabularies', {
   audioMediaId: bigint('audio_media_id', { mode: 'number' }).references(() => media.id),
   imageMediaId: bigint('image_media_id', { mode: 'number' }).references(() => media.id),
   hskVersion: varchar('hsk_version', { length: 10 }).default('3.0'),
+  sinoVietnamese: varchar('sino_vietnamese', { length: 255 }),
+  pinyinAscii: varchar('pinyin_ascii', { length: 100 }),
+  usageNote: text('usage_note'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().$onUpdate(() => new Date()),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
@@ -135,6 +140,15 @@ export const vocabularies = pgTable('vocabularies', {
   idxVocabFreqRank: index('idx_vocab_freq_rank').on(t.frequencyRank),
 }));
 
+export const vocabularyRelations = pgTable('vocabulary_relations', {
+  id: bigserial('id', { mode: 'number' }).primaryKey(),
+  sourceVocabId: bigint('source_vocab_id', { mode: 'number' }).references(() => vocabularies.id, { onDelete: 'cascade' }).notNull(),
+  targetVocabId: bigint('target_vocab_id', { mode: 'number' }).references(() => vocabularies.id, { onDelete: 'cascade' }).notNull(),
+  relationType: relationTypeEnum('relation_type').notNull(),
+}, (t) => ({
+  idxSourceRelation: index('idx_source_relation').on(t.sourceVocabId),
+}));
+
 export const vocabularyCharacters = pgTable('vocabulary_characters', {
   vocabularyId: bigint('vocabulary_id', { mode: 'number' })
     .references(() => vocabularies.id, { onDelete: 'cascade' }).notNull(),
@@ -142,7 +156,7 @@ export const vocabularyCharacters = pgTable('vocabulary_characters', {
     .references(() => characters.id, { onDelete: 'cascade' }).notNull(),
   position: smallint('position').notNull(),
 }, (t) => ({
-  pk: primaryKey({ columns: [t.vocabularyId, t.position] }), // ✅ sửa từ characterId -> position
+  pk: primaryKey({ columns: [t.vocabularyId, t.position] }),
   idxVocabCharsChar: index('idx_vocab_chars_char').on(t.characterId),
 }));
 
@@ -539,6 +553,8 @@ export const vocabulariesRelations = relations(vocabularies, ({ one, many }) => 
   progresses: many(userVocabularyProgress),
   confusions: many(vocabularyConfusions, { relationName: 'baseVocabulary' }),
   confusedByOthers: many(vocabularyConfusions, { relationName: 'confusedVocabulary' }),
+  relatedTo: many(vocabularyRelations, { relationName: 'sourceRelations' }),
+  relatedFrom: many(vocabularyRelations, { relationName: 'targetRelations' }),
 }));
 
 export const vocabularyCharactersRelations = relations(vocabularyCharacters, ({ one }) => ({
@@ -688,4 +704,17 @@ export const vocabularyConfusionsRelations = relations(vocabularyConfusions, ({ 
 export const contentReportsRelations = relations(contentReports, ({ one }) => ({
   user: one(users, { fields: [contentReports.userId], references: [users.id] }),
   vocabulary: one(vocabularies, { fields: [contentReports.vocabularyId], references: [vocabularies.id] }),
+}));
+
+export const vocabularyRelationsRelations = relations(vocabularyRelations, ({ one }) => ({
+  sourceVocab: one(vocabularies, { 
+    fields: [vocabularyRelations.sourceVocabId], 
+    references: [vocabularies.id], 
+    relationName: 'sourceRelations' 
+  }),
+  targetVocab: one(vocabularies, { 
+    fields: [vocabularyRelations.targetVocabId], 
+    references: [vocabularies.id], 
+    relationName: 'targetRelations' 
+  }),
 }));

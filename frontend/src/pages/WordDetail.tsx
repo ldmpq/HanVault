@@ -1,11 +1,36 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
-import { Volume2, GraduationCap, Edit3, PlayCircle, RotateCcw, Play, ChevronRight } from 'lucide-react';
+import { Volume2, GraduationCap, Edit3, PlayCircle, RotateCcw, Play, ChevronRight, Link2, Split } from 'lucide-react';
 import axiosClient from '../shared/lib/axiosClient';
 import HanziWriter from 'hanzi-writer';
 import type { Vocabulary } from '../shared/types/vocabulary.types';
 import { useTextToSpeech } from '../shared/hooks/useTextToSpeech';
 import { highlightTargetWord } from '../shared/utils/text.utils';
+
+const getDisplayPos = (word: Vocabulary | null) => {
+  if (!word) return 'Từ vựng';
+
+  const rawPos = word.partOfSpeech || (word as any).part_of_speech || (word as any).pos;
+  if (!rawPos) return 'Từ vựng';
+  
+  // Từ điển ánh xạ
+  const posMap: Record<string, string> = {
+    'v': 'Động từ',
+    'n': 'Danh từ',
+    'adj': 'Tính từ',
+    'adv': 'Phó từ',
+    'pron': 'Đại từ',
+    'num': 'Số từ',
+    'm': 'Lượng từ',
+    'conj': 'Liên từ',
+    'prep': 'Giới từ',
+    'part': 'Trợ từ',
+    'int': 'Thán từ',
+    'idiom': 'Thành ngữ'
+  };
+  
+  return posMap[rawPos.toLowerCase()] || rawPos;
+};
 
 export default function WordDetail() {
   const { id } = useParams();
@@ -23,6 +48,8 @@ export default function WordDetail() {
   const writerRef = useRef<HTMLDivElement>(null);
   const [writerInstance, setWriterInstance] = useState<HanziWriter | null>(null);
   const [activeDetails, setActiveDetails] = useState({ strokes: 0, radical: '...' });
+
+  const [activeTab, setActiveTab] = useState<'examples' | 'relations'>('examples');
 
   useEffect(() => {
     const fetchWordDetail = async () => {
@@ -94,6 +121,9 @@ export default function WordDetail() {
 
   const chars = word.character.split('');
 
+  const hskLevel = word.hskLevel || (word as any).hsk_level || (word as any).level || 0;
+  const displayPos = getDisplayPos(word);
+
   const renderBreadcrumbs = () => {
     if (location.state?.from === 'dictionary') {
       return (
@@ -136,8 +166,18 @@ export default function WordDetail() {
           <div className="bg-gradient-to-br from-white to-red-50/40 rounded-[2rem] p-10 shadow-[0_4px_20px_rgb(0,0,0,0.02)] border border-red-50 flex flex-col md:flex-row justify-between relative overflow-hidden">
             <div>
               <div className="flex items-center gap-3 mb-6">
-                <span className="bg-[#A82B2B] text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">HSK {word.hskLevel || 1}</span>
-                <span className="text-gray-500 text-sm font-medium">{word.partOfSpeech || 'Từ vựng'}</span>
+                {hskLevel > 0 ? (
+                  <span className="bg-[#A82B2B] text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                    HSK {hskLevel}
+                  </span>
+                ) : (
+                  <span className="bg-gray-100 text-gray-500 border border-gray-200 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                    Ngoài HSK
+                  </span>
+                )}
+                <span className="text-gray-500 text-sm font-medium capitalize">
+                  {displayPos}
+                </span>
               </div>
 
               <div className="flex items-end gap-6 mb-4">
@@ -152,7 +192,19 @@ export default function WordDetail() {
                 </button>
               </div>
 
-              <p className="text-2xl text-gray-800 font-medium mb-8 pl-1">{word.pinyin}</p>
+              <div className="mb-8 pl-1">
+                <p className="text-2xl text-gray-800 font-medium">
+                  {word.pinyin}
+                </p>
+
+                {word.sinoVietnamese && (
+                  <div className="mt-2">
+                    <span className="bg-[#FDFBF9] text-[#E09353] border border-[#E09353]/30 px-3 py-1 rounded-md text-sm font-bold tracking-wide uppercase">
+                      Âm Hán Việt: {word.sinoVietnamese}
+                    </span>
+                  </div>
+                )}
+              </div>
               
               <div className="border-l-[5px] border-[#A82B2B] pl-4">
                 <p className="text-3xl text-gray-900 font-bold tracking-tight">{word.meaning}</p>
@@ -170,35 +222,121 @@ export default function WordDetail() {
             <div className="absolute -right-20 -top-20 w-64 h-64 bg-red-100/50 rounded-full blur-3xl pointer-events-none"></div>
           </div>
 
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Câu ví dụ</h2>
-            {word.examples && word.examples.length > 0 ? (
-              <div className="space-y-4">
-                {word.examples.map((ex, idx) => (
-                  <div key={idx} className="bg-white rounded-[1.5rem] p-8 shadow-sm border border-gray-100 flex items-center justify-between group hover:shadow-md transition-shadow cursor-pointer">
-                    <div className="flex-1 pr-6">
-                      <p className="text-2xl text-gray-900 mb-3 font-medium">
-                        {highlightTargetWord(ex.ch, word.character || '')}
-                      </p>
-                      {ex.py && <p className="text-gray-500 mb-3 text-sm">{ex.py}</p>}
-                      {ex.en ? (
-                        <p className="text-gray-800 font-medium">{ex.en}</p>
-                      ) : (
-                        <p className="text-gray-400 italic text-sm mt-1">Chưa cập nhật bản dịch</p>
-                      )}
-                    </div>
-                    <button 
-                      onClick={(e) => playAudio(e, ex.ch)}
-                      className="w-10 h-10 rounded-full flex items-center justify-center text-gray-400 group-hover:text-[#A82B2B] border border-gray-200 group-hover:border-[#A82B2B] transition-colors shrink-0"
-                    >
-                      <PlayCircle className="w-5 h-5" />
-                    </button>
+          {/* ================= HỆ THỐNG TAB (VÍ DỤ & TỪ LIÊN QUAN) ================= */}
+          <div className="mt-8">
+            {/* Tab Headers */}
+            <div className="flex gap-8 border-b border-gray-200 mb-6 px-2">
+              <button
+                onClick={() => setActiveTab('examples')}
+                className={`pb-4 text-lg font-bold transition-all border-b-[3px] ${
+                  activeTab === 'examples' 
+                    ? 'border-[#A82B2B] text-[#A82B2B]' 
+                    : 'border-transparent text-gray-400 hover:text-gray-700'
+                }`}
+              >
+                Câu ví dụ
+              </button>
+              <button
+                onClick={() => setActiveTab('relations')}
+                className={`pb-4 text-lg font-bold transition-all border-b-[3px] ${
+                  activeTab === 'relations' 
+                    ? 'border-[#A82B2B] text-[#A82B2B]' 
+                    : 'border-transparent text-gray-400 hover:text-gray-700'
+                }`}
+              >
+                Từ liên quan
+              </button>
+            </div>
+
+            {/* Tab Content: Câu ví dụ */}
+            {activeTab === 'examples' && (
+              <div className="animate-fade-in">
+                {word.examples && word.examples.length > 0 ? (
+                  <div className="space-y-4">
+                    {word.examples.map((ex, idx) => (
+                      <div key={idx} className="bg-white rounded-[1.5rem] p-8 shadow-sm border border-gray-100 flex items-center justify-between group hover:shadow-md transition-shadow cursor-pointer">
+                        <div className="flex-1 pr-6">
+                          <p className="text-2xl text-gray-900 mb-3 font-medium">
+                            {highlightTargetWord(ex.ch, word.character || '')}
+                          </p>
+                          {ex.py && <p className="text-gray-500 mb-3 text-sm">{ex.py}</p>}
+                          {ex.en ? (
+                            <p className="text-gray-800 font-medium">{ex.en}</p>
+                          ) : (
+                            <p className="text-gray-400 italic text-sm mt-1">Chưa cập nhật bản dịch</p>
+                          )}
+                        </div>
+                        <button 
+                          onClick={(e) => playAudio(e, ex.ch)}
+                          className="w-10 h-10 rounded-full flex items-center justify-center text-gray-400 group-hover:text-[#A82B2B] border border-gray-200 group-hover:border-[#A82B2B] transition-colors shrink-0"
+                        >
+                          <PlayCircle className="w-5 h-5" />
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                ) : (
+                  <div className="bg-white rounded-[1.5rem] p-8 text-center text-gray-400 border border-gray-100">
+                    Chưa có câu ví dụ nào cho từ vựng này.
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="bg-white rounded-[1.5rem] p-8 text-center text-gray-400 border border-gray-100">
-                Chưa có câu ví dụ nào cho từ vựng này.
+            )}
+
+            {/* Tab Content: Từ liên quan (Đồng nghĩa / Trái nghĩa) */}
+            {activeTab === 'relations' && (
+              <div className="bg-white rounded-[1.5rem] p-8 shadow-sm border border-gray-100 animate-fade-in space-y-8">
+                
+                {/* Từ đồng nghĩa */}
+                <div>
+                  <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-5 flex items-center gap-2">
+                    <Link2 className="w-4 h-4 text-blue-500" /> Đồng nghĩa
+                  </h3>
+                  
+                  {word.synonyms && word.synonyms.length > 0 ? (
+                    <div className="flex flex-wrap gap-3">
+                      {word.synonyms.map((syn) => (
+                        <div 
+                          key={syn.id}
+                          onClick={() => navigate(`/word/${syn.id}`)}
+                          className="group cursor-pointer bg-blue-50/50 hover:bg-blue-100/50 border border-blue-100 rounded-2xl px-5 py-3 transition-all"
+                        >
+                          <p className="text-2xl font-medium text-blue-900 mb-1">{syn.character}</p>
+                          <p className="text-xs text-blue-600/70 font-medium">{syn.pinyin}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-400 italic">Chưa có dữ liệu từ đồng nghĩa.</p>
+                  )}
+                </div>
+
+                <div className="w-full h-px bg-gray-100 border-t border-dashed border-gray-200"></div>
+
+                {/* Từ trái nghĩa */}
+                <div>
+                  <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-5 flex items-center gap-2">
+                    <Split className="w-4 h-4 text-orange-500" /> Trái nghĩa
+                  </h3>
+                  
+                  {word.antonyms && word.antonyms.length > 0 ? (
+                    <div className="flex flex-wrap gap-3">
+                      {word.antonyms.map((ant) => (
+                        <div 
+                          key={ant.id}
+                          onClick={() => navigate(`/word/${ant.id}`)}
+                          className="group cursor-pointer bg-orange-50/50 hover:bg-orange-100/50 border border-orange-100 rounded-2xl px-5 py-3 transition-all"
+                        >
+                          <p className="text-2xl font-medium text-orange-900 mb-1">{ant.character}</p>
+                          <p className="text-xs text-orange-600/70 font-medium">{ant.pinyin}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-400 italic">Chưa có dữ liệu từ trái nghĩa.</p>
+                  )}
+                </div>
+
               </div>
             )}
           </div>

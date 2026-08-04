@@ -65,8 +65,8 @@ export default function Register() {
       title="Tạo tài khoản"
       subtitle="Bắt đầu hành trình chinh phục HSK của bạn ngay hôm nay."
       activeTab="register"
-      quoteMain="Tri nhân giả trí, tự tri giả minh"
-      quoteSub="(知人者智，自知者明)"
+      quoteMain="Hành trình ngàn dặm bắt đầu từ một bước chân"
+      quoteSub="(千里之行始于足下)"
     >
       {error && (
         <div className="w-full mb-5 p-3 bg-red-50 text-red-600 text-sm rounded-lg font-medium border border-red-100">

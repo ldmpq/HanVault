@@ -20,27 +20,24 @@ function ArtworkCard({ title, imageSrc }: { title: string; imageSrc: string }) {
           src={imageSrc} 
           alt={title} 
           className="w-full h-full object-cover"
-          onError={(e) => e.currentTarget.style.display = 'none'} // Ẩn nếu đường dẫn ảnh sai
+          onError={(e) => e.currentTarget.style.display = 'none'}
         />
       </div>
       
-      {/* Nửa phải: Form Mockup chiếm 40% */}
+      {/* Nửa phải */}
       <div className="w-[40%] pl-4 pr-2 flex flex-col justify-center">
         <h3 className="text-[13px] font-bold text-gray-800 mb-3 tracking-tight">{title}</h3>
-        
-        {/* Mockup Input Username */}
+
         <div className="h-6 w-full bg-gray-50 rounded-[6px] mb-2 flex items-center px-2.5">
-          <span className="text-[8px] text-gray-400 font-medium">Username</span>
+          <span className="text-[8px] text-gray-400 font-medium">Email address</span>
         </div>
-        
-        {/* Mockup Input Password */}
+
         <div className="h-6 w-full bg-gray-50 rounded-[6px] mb-3.5 flex items-center px-2.5">
           <span className="text-[8px] text-gray-400 font-medium">Password</span>
         </div>
-        
-        {/* Mockup Button Sign In */}
+
         <div className="h-7 w-full bg-white rounded-full shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-gray-100 flex items-center justify-center">
-          <span className="text-[9px] text-gray-500 font-bold">Sign In</span>
+          <span className="text-[9px] text-gray-500 font-bold">Log In</span>
         </div>
       </div>
       
@@ -102,7 +99,7 @@ export default function AuthLayout({ children, title, subtitle, activeTab, quote
                 activeTab === 'login' ? 'bg-white shadow-sm text-[#A82B2B]' : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              Login
+              Đăng nhập
             </button>
             <button
               type="button"
@@ -111,7 +108,7 @@ export default function AuthLayout({ children, title, subtitle, activeTab, quote
                 activeTab === 'register' ? 'bg-white shadow-sm text-[#A82B2B]' : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              Register
+              Đăng ký
             </button>
           </div>
 
