@@ -15,7 +15,11 @@ import WordDetail from './pages/WordDetail';
 import DeckDetail from './pages/DeckDetail';
 import Review from './pages/Review';
 // import Progress from './pages/Progress';
+// import Profile from './pages/Profile';
+// import Settings from './pages/Settings';
 // import NotFound from './pages/NotFound';
+
+import ComingSoon from './pages/CommingSoon';
 
 function App() {
   return (
@@ -24,7 +28,8 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<SignIn />} />
         <Route path="/register" element={<Register />} />
-        {/* <Route path="/forgot-password" element={<ForgotPassword />} /> */}
+        // Cập nhật sau (1)
+        <Route path="/forgot-password" element={<ComingSoon />} />
 
         <Route
           element={
@@ -40,7 +45,12 @@ function App() {
           <Route path="/deck/:deckId" element={<DeckDetail />} />
           <Route path="/review" element={<Review />} />
           <Route path="/review/:deckId" element={<Review />} />
-          {/* <Route path="/progress" element={<Progress />} /> */}
+          // Cập nhật sau (2)
+          <Route path="/progress" element={<ComingSoon />} />
+          <Route path="/courses" element={<ComingSoon />} />
+          <Route path="/translate" element={<ComingSoon />} />
+          <Route path="/profile" element={<ComingSoon />} />
+          <Route path="/settings" element={<ComingSoon />} />
         </Route>
         
         {/* <Route path="*" element={<NotFound />} /> */}

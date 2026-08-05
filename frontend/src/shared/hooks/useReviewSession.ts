@@ -12,6 +12,7 @@ export const useReviewSession = (deckId: string | undefined) => {
   
   const logsRef = useRef<any[]>([]);
 
+  // 1. KHỞI TẠO PHIÊN HỌC
   useEffect(() => {
     if (!deckId) {
       setIsLoading(false);
@@ -36,42 +37,50 @@ export const useReviewSession = (deckId: string | undefined) => {
     startStudy();
   }, [deckId]);
 
-  const endStudySession = async (sessionId: number, totalCards: number, finalLogs: any[]) => {
-    try {
-      const correctWords = finalLogs.filter(l => l.isCorrect).length;
-      await axiosClient.post(`/srs/sessions/${sessionId}/end`, {
-        totalWords: totalCards,
-        correctWords,
-        logs: finalLogs
-      });
-      setIsFinished(true);
-    } catch (error) {
-      console.error('Lỗi khi kết thúc phiên:', error);
-    }
-  };
-
+  // 2. XỬ LÝ ĐÁNH GIÁ THẺ
   const handleRate = useCallback(async (quality: number) => {
     if (!session || isFinished) return;
     
     const currentCard = session.cards[currentIndex];
     const isCorrect = quality >= 3;
 
+    // A. Bắn API lưu thẻ đơn lẻ (không cần await để UI mượt hơn)
     try {
-      await axiosClient.post('/srs/review', { vocabularyId: currentCard.id, quality });
+      axiosClient.post('/srs/review', { vocabularyId: currentCard.id, quality });
     } catch (error) {}
 
-    logsRef.current.push({ vocabularyId: currentCard.id, isCorrect, responseQuality: quality, responseTimeMs: 0 });
+    // B. Lưu log cục bộ
+    logsRef.current.push({ 
+      vocabularyId: currentCard.id, 
+      isCorrect, 
+      responseQuality: quality, 
+      responseTimeMs: 0 
+    });
+    
     setIsFlipped(false);
 
+    // C. Chuyển thẻ hoặc Kết thúc
     setTimeout(async () => {
       if (currentIndex < session.cards.length - 1) {
         setCurrentIndex(prev => prev + 1);
       } else {
-        await endStudySession(session.sessionId, session.cards.length, logsRef.current);
+        setIsFinished(true);
+
+        try {
+          const correctWords = logsRef.current.filter(l => l.isCorrect).length;
+          await axiosClient.post(`/srs/sessions/${session.sessionId}/end`, {
+            totalWords: session.cards.length,
+            correctWords,
+            logs: logsRef.current
+          });
+        } catch (err) {
+          console.error('Lỗi khi kết thúc phiên:', err);
+        }
       }
-    }, 200);
+    }, 200); // Đợi 200ms để hiệu ứng lật úp thẻ kịp diễn ra
   }, [session, currentIndex, isFinished]);
 
+  // 3. LẮNG NGHE PHÍM TẮT
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isFinished || !deckId || error) return;

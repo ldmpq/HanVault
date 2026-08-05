@@ -14,7 +14,7 @@ export interface Vocabulary {
   isNew?: boolean; // SRS
   isFavorite?: boolean; // Dictionary
   examples?: { ch: string; py: string; en: string }[];
-  components?: { ch: string; py: string; meaning: string }[];
+  components?: { ch: string; py: string; meaning: string, radical?: string, decomposition?: string }[];
   mastery?: number;
   lastReviewed?: string;
   mnemonic?: string;

@@ -83,6 +83,7 @@ export const characters = pgTable('characters', {
   unicode: varchar('unicode', { length: 10 }),
   frequencyRank: integer('frequency_rank'),
   audioMediaId: bigint('audio_media_id', { mode: 'number' }).references(() => media.id),
+  etymology: varchar('etymology', { length: 100 }),
   sinoVietnamese: varchar('sino_vietnamese', { length: 100 }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().$onUpdate(() => new Date()),

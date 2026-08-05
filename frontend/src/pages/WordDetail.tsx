@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
-import { Volume2, GraduationCap, Edit3, PlayCircle, RotateCcw, Play, ChevronRight, Link2, Split } from 'lucide-react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { Volume2, GraduationCap, Edit3, PlayCircle, Play, Link2, Split } from 'lucide-react';
 import axiosClient from '../shared/lib/axiosClient';
 import HanziWriter from 'hanzi-writer';
 import type { Vocabulary } from '../shared/types/vocabulary.types';
 import { useTextToSpeech } from '../shared/hooks/useTextToSpeech';
 import { highlightTargetWord } from '../shared/utils/text.utils';
+import { renderBreadcrumbs } from '../shared/utils/navigation.utils';
 
 const getDisplayPos = (word: Vocabulary | null) => {
   if (!word) return 'Từ vựng';
@@ -47,7 +48,8 @@ export default function WordDetail() {
   const [activeStrokeChar, setActiveStrokeChar] = useState<string>('');
   const writerRef = useRef<HTMLDivElement>(null);
   const [writerInstance, setWriterInstance] = useState<HanziWriter | null>(null);
-  const [activeDetails, setActiveDetails] = useState({ strokes: 0, radical: '...' });
+
+  const [activeDetails, setActiveDetails] = useState({ strokes: 0, radical: '...', decomposition: '...' });
 
   const [activeTab, setActiveTab] = useState<'examples' | 'relations'>('examples');
 
@@ -104,14 +106,34 @@ export default function WordDetail() {
 
       const component = word?.components?.find(c => c.ch === activeStrokeChar);
       let radicalText = 'Chưa rõ';
+      let decompositionText = 'Chưa rõ';
+      
       if (component) {
-        if (component.meaning && component.meaning !== 'Bộ thủ/Thành phần') {
-          radicalText = `${component.ch} (${component.meaning})`;
-        } else {
-          radicalText = component.ch;
-        }
+        const isValidMeaning = component.meaning && 
+                               component.meaning !== 'null' && 
+                               component.meaning !== 'N/A' && 
+                               component.meaning !== 'Bộ thủ/Thành phần' &&
+                               component.meaning !== 'Bộ thủ / Thành phần';
+                               
+        const validRadical = component.radical && component.radical !== 'N/A' 
+                               ? component.radical 
+                               : component.ch;
+
+        radicalText = isValidMeaning 
+          ? `${validRadical} (${component.meaning})` 
+          : validRadical;
+
+        const rawDecomp = component.decomposition || (component as any).morphology;
+        decompositionText = (rawDecomp && rawDecomp !== 'null' && rawDecomp !== 'N/A') 
+          ? rawDecomp 
+          : 'Nguyên thể';
       }
-      setActiveDetails({ strokes: strokesCount, radical: radicalText });
+      
+      setActiveDetails({ 
+        strokes: strokesCount, 
+        radical: radicalText, 
+        decomposition: decompositionText 
+      });
     };
     fetchDynamicCharData();
   }, [activeStrokeChar, word]);
@@ -124,43 +146,11 @@ export default function WordDetail() {
   const hskLevel = word.hskLevel || (word as any).hsk_level || (word as any).level || 0;
   const displayPos = getDisplayPos(word);
 
-  const renderBreadcrumbs = () => {
-    if (location.state?.from === 'dictionary') {
-      return (
-        <div className="flex items-center gap-2 text-xs font-bold text-gray-500 mb-8 tracking-wide">
-          <Link to="/dictionary" className="hover:text-gray-900 transition-colors">Từ điển</Link>
-          <ChevronRight className="w-3.5 h-3.5" />
-          <span className="text-gray-900">{word.character}</span>
-        </div>
-      );
-    }
-    if (deckId) {
-      return (
-        <div className="flex items-center gap-2 text-xs font-bold text-gray-500 mb-8 tracking-wide">
-          <Link to="/library" className="hover:text-gray-900 transition-colors">Bộ thẻ</Link>
-          <ChevronRight className="w-3.5 h-3.5" />
-          <Link to={`/deck/${deckId}`} className="hover:text-gray-900 transition-colors">{deckName}</Link>
-          <ChevronRight className="w-3.5 h-3.5" />
-          <span className="text-gray-900">{word.character}</span>
-        </div>
-      );
-    }
-    return (
-      <div className="flex items-center gap-2 text-xs font-bold text-gray-500 mb-8 tracking-wide">
-        <Link to="/" className="hover:text-gray-900 transition-colors">Trang chủ</Link>
-        <ChevronRight className="w-3.5 h-3.5" />
-        <span className="text-gray-900">{word.character}</span>
-      </div>
-    );
-  };
-
   return (
     <div className="max-w-[1300px] mx-auto pb-24 animate-fade-in">
-      
-      {renderBreadcrumbs()}
+      {renderBreadcrumbs(location.state, deckId, deckName, word.character)}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
         {/* ================= CỘT TRÁI ================= */}
         <div className="lg:col-span-8 space-y-8">
           <div className="bg-gradient-to-br from-white to-red-50/40 rounded-[2rem] p-10 shadow-[0_4px_20px_rgb(0,0,0,0.02)] border border-red-50 flex flex-col md:flex-row justify-between relative overflow-hidden">
@@ -200,7 +190,7 @@ export default function WordDetail() {
                 {word.sinoVietnamese && (
                   <div className="mt-2">
                     <span className="bg-[#FDFBF9] text-[#E09353] border border-[#E09353]/30 px-3 py-1 rounded-md text-sm font-bold tracking-wide uppercase">
-                      Âm Hán Việt: {word.sinoVietnamese}
+                    {word.sinoVietnamese}
                     </span>
                   </div>
                 )}
@@ -375,13 +365,7 @@ export default function WordDetail() {
               
               <div ref={writerRef} className="z-10 cursor-crosshair"></div>
 
-              <div className="absolute bottom-6 left-0 right-0 flex justify-center items-center gap-4 z-20">
-                <button 
-                  onClick={() => { writerInstance?.hideCharacter(); setTimeout(() => writerInstance?.showCharacter(), 50); }}
-                  className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-gray-500 hover:text-[#A82B2B] shadow-sm border border-gray-100 transition-colors"
-                >
-                  <RotateCcw className="w-5 h-5" />
-                </button>
+              <div className="absolute bottom-6 left-0 right-0 flex justify-center items-center z-20">
                 <button 
                   onClick={() => writerInstance?.animateCharacter()}
                   className="w-14 h-14 bg-[#A82B2B] rounded-full flex items-center justify-center text-white shadow-lg shadow-red-900/20 hover:bg-[#8b2323] transition-colors"
@@ -393,15 +377,43 @@ export default function WordDetail() {
 
             <div className="border-t border-dashed border-gray-200 pt-8">
               <h2 className="text-xl font-bold text-[#0D1B2A] mb-6">Chi tiết ký tự</h2>
-              
-              <div className="flex gap-4 mb-6">
-                <div className="flex-1 bg-[#FDFBF9] rounded-2xl p-5 flex flex-col items-center justify-center text-center">
-                  <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2">Số nét ({activeStrokeChar})</span>
-                  <span className="text-3xl font-bold text-[#A82B2B]">{activeDetails.strokes}</span>
+
+              <div className="flex flex-col gap-4 mb-6">
+                <div className="flex gap-4">
+                  <div className="flex-1 bg-[#FDFBF9] rounded-2xl p-5 flex flex-col items-center justify-center text-center shadow-sm border border-gray-50">
+                    <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2">Số nét</span>
+                    <span className="text-3xl font-bold text-[#A82B2B]">{activeDetails.strokes}</span>
+                  </div>
+                  <div className="flex-1 bg-[#FDFBF9] rounded-2xl p-5 flex flex-col items-center justify-center text-center shadow-sm border border-gray-50">
+                    <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2">Bộ</span>
+
+                    {activeDetails.radical.includes('(') ? (
+                      <div className="flex flex-col items-center mt-1">
+                        {/* Hiển thị ký tự bộ (chữ Hán) */}
+                        <span className="text-2xl font-bold text-[#0D1B2A]">
+                          {activeDetails.radical.split(' (')[0]}
+                        </span>
+                        {/* Hiển thị phiên âm/ý nghĩa */}
+                        <span className="text-[13px] font-medium text-gray-500 mt-1 capitalize">
+                          {activeDetails.radical.split(' (')[1].replace(')', '')}
+                        </span>
+                      </div>
+                    ) : (
+                      /* Trường hợp không có phiên âm đi kèm, chỉ hiển thị mỗi ký tự */
+                      <span className="text-2xl font-bold text-[#0D1B2A] mt-1">
+                        {activeDetails.radical}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div className="flex-1 bg-[#FDFBF9] rounded-2xl p-5 flex flex-col items-center justify-center text-center">
-                  <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2">Hình thái ({activeStrokeChar})</span>
-                  <span className="text-base font-bold text-[#0D1B2A] mt-1">{activeDetails.radical}</span>
+                
+                <div className="w-full bg-[#FDFBF9] rounded-2xl p-5 flex flex-col items-center justify-center text-center shadow-sm border border-gray-50">
+                  <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2">Hình thái</span>
+                  <span className="text-xl font-bold text-[#0D1B2A] mt-1 tracking-widest">
+                    {activeDetails.decomposition === 'Nguyên thể'
+                      ? activeDetails.decomposition
+                      : activeDetails.decomposition.split('').join(' + ')}
+                  </span>
                 </div>
               </div>
 

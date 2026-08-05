@@ -13,6 +13,7 @@ function filterDecksByTab(decks: Deck[], tab: string): Deck[] {
     case 'HSK 1-2': return decks.filter((d) => [1, 2].includes(level(d)));
     case 'HSK 3-4': return decks.filter((d) => [3, 4].includes(level(d)));
     case 'HSK 5-6': return decks.filter((d) => [5, 6].includes(level(d)));
+    case 'HSK 7-8-9': return decks.filter((d) => [7, 8, 9].includes(level(d)));
     case 'My list': return decks.filter((d) => d.progress > 0);
     default: return decks;
   }
@@ -59,16 +60,15 @@ export default function Library() {
         <div className="max-w-md z-10 mb-8 md:mb-0">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 tracking-tight">Bộ thẻ</h1>
           <p className="text-gray-600 leading-relaxed text-sm md:text-base">
-            Ôn tập từ vựng theo các bộ thẻ được thiết kế sẵn, phù hợp với từng trình độ HSK và chủ đề học tập.
-            Chọn bộ thẻ bạn muốn học và bắt đầu hành trình nâng cao vốn từ vựng của mình ngay hôm nay!
+            Học và ôn tập từ vựng bằng Flashcard với các bộ thẻ theo trình độ HSK, chủ đề hoặc tự tạo theo sở thích. Chọn bộ thẻ phù hợp và bắt đầu học ngay!
           </p>
         </div>
         <div className="w-full md:w-1/2 rounded-2xl overflow-hidden shadow-sm">
-          <img src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&q=80" alt="Study Desk Illustration" className="w-full h-48 md:h-64 object-cover" />
+          <img src="/images/chinese-flashcards.jpg" alt="Study Desk Illustration" className="w-full h-48 md:h-64 object-cover" />
         </div>
       </div>
 
-      {/* FEATURED COLLECTIONS (Khôi phục toàn bộ) */}
+      {/* FEATURED COLLECTIONS  */}
       <div className="mb-16">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Featured Collections</h2>
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
@@ -140,7 +140,7 @@ export default function Library() {
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-1">{deck.title}</h3>
                 <p className="text-xs text-gray-500 mb-6 flex-1 leading-relaxed">{deck.description || 'Bộ từ vựng cơ bản để bắt đầu hành trình học tập.'}</p>
-                <div className="flex items-center gap-1.5 text-xs font-bold text-gray-600 mb-3"><span className="text-sm font-bold text-[#A82B2B] leading-none">字</span>{deck.words || 150} từ</div>
+                <div className="flex items-center gap-1.5 text-xs font-bold text-gray-600 mb-3"><span className="text-sm font-bold text-[#A82B2B] leading-none">字</span>{deck.words} từ</div>
 
                 {deck.progress > 0 ? (
                   <>

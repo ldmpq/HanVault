@@ -8,6 +8,9 @@ import vocabularyRoutes from './modules/vocabulary/vocabulary.route';
 import srsRoutes from './modules/srs/srs.route';
 import dashboardRoutes from './modules/dashboard/dashboard.route';
 import libraryRoutes from './modules/library/library.route';
+// import quizRoutes from './modules/quiz/quiz.route';
+import topicRoutes from './modules/topic/topic.route';
+import favoriteRoutes from './modules/favorite/favorite.route';
 
 const app: Application = express();
 
@@ -42,7 +45,13 @@ app.use('/api/library', libraryRoutes);
 app.use('/api/srs', srsRoutes);
 
 // Quiz routes
+// app.use('/api/quiz', quizRoutes);
 
+// Topic routes
+app.use('/api/topics', topicRoutes);
+
+// Favorite routes
+app.use('/api/favorites', favoriteRoutes);
 
 // Global error handling middleware
 app.use((err: any, req: Request, res: Response, next: any) => {

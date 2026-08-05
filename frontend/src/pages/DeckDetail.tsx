@@ -2,8 +2,10 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Play, Star, Heart, ArrowRight, ChevronRight } from 'lucide-react';
 import axiosClient from '../shared/lib/axiosClient';
-import SearchFilterBar from '../components/SearchFilterBar';
+import Pagination from '../components/Pagination';
 import type { Vocabulary } from '../shared/types/vocabulary.types';
+
+const ITEMS_PER_PAGE = 20; 
 
 export default function DeckDetail() {
   const { deckId } = useParams();
@@ -12,7 +14,8 @@ export default function DeckDetail() {
   const [deckInfo, setDeckInfo] = useState<any>(null);
   const [words, setWords] = useState<Vocabulary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     const fetchDeckDetails = async () => {
@@ -31,22 +34,16 @@ export default function DeckDetail() {
     if (deckId) fetchDeckDetails();
   }, [deckId]);
 
-  // Lọc theo Hán tự, pinyin, hoặc nghĩa — không phân biệt hoa/thường
-  const filteredWords = useMemo(() => {
-    const keyword = searchTerm.trim().toLowerCase();
-    if (!keyword) return words;
-    return words.filter(
-      (w) =>
-        w.simplified.toLowerCase().includes(keyword) ||
-        w.pinyin.toLowerCase().includes(keyword) ||
-        (w.meaning || '').toLowerCase().includes(keyword)
-    );
-  }, [words, searchTerm]);
+  // Tính toán Phân trang trực tiếp từ mảng words ban đầu
+  const totalPages = Math.ceil(words.length / ITEMS_PER_PAGE);
+  const displayedWords = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return words.slice(start, start + ITEMS_PER_PAGE);
+  }, [words, currentPage]);
 
   if (isLoading) return <div className="text-center py-20 text-gray-500">Đang tải dữ liệu bộ thẻ...</div>;
   if (!deckInfo) return <div className="text-center py-20 text-red-500">Không tìm thấy bộ thẻ này!</div>;
 
-  // Giả lập dữ liệu thống kê (sau này có thể nối API thật)
   const stats = {
     total: words.length,
     mastered: Math.floor(words.length * 0.2), 
@@ -68,8 +65,6 @@ export default function DeckDetail() {
 
       {/* ================= HEADER SECTION ================= */}
       <div className="flex flex-col lg:flex-row gap-10 lg:gap-16 mb-16">
-        
-        {/* Ảnh bìa */}
         <div className="w-full lg:w-[420px] shrink-0 relative rounded-[2rem] overflow-hidden shadow-sm bg-white aspect-[3/4]">
           <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-4 py-1.5 rounded-full z-10 shadow-sm">
             <span className="text-[#A82B2B] text-xs font-bold tracking-wide">HSK {deckInfo.hskLevel || 4}</span>
@@ -81,9 +76,7 @@ export default function DeckDetail() {
           />
         </div>
 
-        {/* Thông tin chi tiết */}
         <div className="flex-1 flex flex-col justify-center">
-          
           <div className="flex items-center gap-4 mb-4">
             <span className="bg-[#FFEFE5] text-[#E07A5F] text-[10px] uppercase font-bold tracking-widest px-3 py-1.5 rounded">
               Vocabulary Deck
@@ -99,10 +92,9 @@ export default function DeckDetail() {
           </h1>
           
           <p className="text-gray-600 text-[15px] leading-relaxed mb-10 max-w-2xl">
-            {deckInfo.description || 'Accelerate your professional communication skills with this comprehensive deck focused on modern business terminology, negotiations, and formal workplace etiquette. Designed for intermediate to advanced learners seeking fluency in corporate environments.'}
+            {deckInfo.description || 'Accelerate your professional communication skills with this comprehensive deck focused on modern business terminology, negotiations, and formal workplace etiquette.'}
           </p>
 
-          {/* Khôi phục Hàng Thống Kê (4 ô vuông) */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
             <div className="bg-white rounded-2xl p-5 shadow-[0_2px_15px_rgb(0,0,0,0.03)] border border-gray-50 flex flex-col items-center justify-center text-center">
               <span className="text-3xl font-bold text-[#A82B2B] mb-1">{stats.total}</span>
@@ -162,40 +154,33 @@ export default function DeckDetail() {
           </button>
         </div>
 
-        <div className="mb-8">
-          <SearchFilterBar
-            value={searchTerm}
-            onChange={setSearchTerm}
-            placeholder="Bạn muốn tìm từ nào?"
-            onFilterClick={() => {}}
-          />
-        </div>
-
         {words.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-2xl text-gray-400 shadow-[0_2px_15px_rgb(0,0,0,0.03)]">
             Bộ thẻ này hiện chưa có từ vựng nào.
           </div>
-        ) : filteredWords.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-2xl text-gray-400 shadow-[0_2px_15px_rgb(0,0,0,0.03)]">
-            Không tìm thấy từ nào khớp với "{searchTerm}".
-          </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
-            {filteredWords.map((word) => (
-              <div
-                key={word.id}
-                onClick={() =>
-                  navigate(`/word/${word.id}`, {
-                    state: { deckId: deckId, deckName: deckInfo.name },
-                  })
-                }
-                className="bg-white rounded-2xl p-8 flex flex-col items-center justify-center shadow-[0_2px_15px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all cursor-pointer aspect-square"
-              >
-                <h2 className="text-6xl font-bold text-gray-900 mb-4">{word.simplified}</h2>
-                <p className="text-sm font-medium text-gray-500">{word.pinyin}</p>
-              </div>
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
+              {displayedWords.map((word) => (
+                <div
+                  key={word.id}
+                  onClick={() =>
+                    navigate(`/word/${word.id}`, {
+                      state: { deckId: deckId, deckName: deckInfo.name },
+                    })
+                  }
+                  className="bg-white rounded-2xl p-8 flex flex-col items-center justify-center shadow-[0_2px_15px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all cursor-pointer aspect-square"
+                >
+                  <h2 className={`${word.simplified.length > 2 ? 'text-5xl' : 'text-6xl'} font-bold text-gray-900 mb-4`}>
+                    {word.simplified}
+                  </h2>
+                  <p className="text-sm font-medium text-gray-500">{word.pinyin}</p>
+                </div>
+              ))}
+            </div>
+
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={(page) => setCurrentPage(page)} />
+          </>
         )}
       </div>
     </div>

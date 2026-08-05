@@ -1,4 +1,4 @@
-import { eq, ilike, or, and, desc, sql } from 'drizzle-orm';
+import { eq, ilike, or, and, desc, sql, inArray } from 'drizzle-orm';
 import { db } from '../../config/database';
 import { vocabularies, vocabularyMeanings, exampleSentences, exampleSentenceTranslations, media, characters, vocabularyCharacters } from '../../shared/schema';
 import { GetVocabulariesQuery, CreateVocabularyInput } from './vocabulary.validation';
@@ -24,14 +24,20 @@ export class VocabularyService {
     const offset = (page - 1) * limit;
 
     const conditions = [];
+
+    const topicId = params.topicId ? Number(params.topicId) : undefined;
     
     // 1. Lọc theo cấp độ HSK
-    if (hskLevel) conditions.push(eq(vocabularies.hskLevel, hskLevel));
+    if (params.hskLevel) {
+      const levels = String(params.hskLevel).split(',').map(Number).filter(n => !isNaN(n));
+      if (levels.length > 0) {
+        conditions.push(inArray(vocabularies.hskLevel, levels));
+      }
+    }
     
     // 2. Thuật toán tìm kiếm đa tầng
     if (keyword) {
       const asciiKeyword = normalizeSearchString(keyword);
-
       conditions.push(
         or(
           // T1: Tìm theo Hán tự (Chính xác hoặc chứa ký tự)
@@ -54,6 +60,25 @@ export class VocabularyService {
           )`
         )
       );
+    }
+
+    if (topicId) {
+      conditions.push(
+        sql`EXISTS (
+          SELECT 1 FROM vocabulary_topics 
+          WHERE vocabulary_topics.vocabulary_id = vocabularies.id 
+          AND vocabulary_topics.topic_id = ${topicId}
+        )`
+      );
+    }
+
+    if (params.ids) {
+      const idsArray = params.ids.split(',').map(Number).filter(id => !isNaN(id));
+      if (idsArray.length > 0) {
+        conditions.push(inArray(vocabularies.id, idsArray));
+      } else {
+        conditions.push(sql`1 = 0`); 
+      }
     }
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
@@ -135,8 +160,10 @@ export class VocabularyService {
       components: vocab.vocabularyCharacters.map((vc) => ({
         ch: vc.character.hanzi,
         py: vc.character.pinyin || '',
-        meaning: vc.character.radicalMeaning || 'Thành phần',
+        meaning: vc.character.radicalMeaning || 'N/A',
         sinoVietnamese: vc.character.sinoVietnamese || 'Chưa cập nhật',
+        radical: vc.character.radical || 'N/A',
+        decomposition: vc.character.decomposition || 'N/A',
       })),
       
       examples: vocab.examples.map((ex) => {

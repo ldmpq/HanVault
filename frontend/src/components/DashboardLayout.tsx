@@ -1,24 +1,17 @@
-import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
-import { useAuthStore } from '../shared/store/authStore';
+import { Link, useLocation, Outlet } from 'react-router-dom';
+import AvatarDropdown from '../components/AvatarDropdown';
 
 export default function DashboardLayout() {
   const location = useLocation();
-  const navigate = useNavigate();
-  const logout = useAuthStore((state) => state.logout);
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
 
   const navItems = [
     { name: 'Trang chủ', path: '/dashboard' },
     { name: 'Từ điển', path: '/dictionary' },
     { name: 'Dịch thuật', path: '/translate' },
     { name: 'Bộ thẻ', path: '/library' },
-    { name: 'Luyện tập', path: '/review' },
-    { name: 'Tiến trình', path: '/progress' },
-    { name: 'Khóa học', path: '/courses' },
+    { name: 'Học', path: '/courses' },
+    { name: 'Ôn tập', path: '/review' },
+    { name: 'Tiến độ', path: '/progress' },
   ];
 
   return (
@@ -51,21 +44,8 @@ export default function DashboardLayout() {
           })}
         </nav>
 
-        {/* User Profile & Logout */}
         <div className="flex items-center gap-4">
-          <button 
-            onClick={handleLogout}
-            className="text-xs font-semibold text-gray-600 hover:text-[#A82B2B] uppercase tracking-wide transition-colors"
-          >
-            Đăng xuất
-          </button>
-          <div className="w-10 h-10 rounded-full overflow-hidden border border-gray-200">
-            <img 
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" 
-              alt="User Avatar" 
-              className="w-full h-full object-cover"
-            />
-          </div>
+          <AvatarDropdown />
         </div>
       </header>
 

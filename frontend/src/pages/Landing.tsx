@@ -9,9 +9,9 @@ export default function Landing() {
     { name: 'Từ điển', path: '/dictionary' },
     { name: 'Dịch thuật', path: '/translate' },
     { name: 'Bộ thẻ', path: '/library' },
-    { name: 'Luyện tập', path: '/review' },
-    { name: 'Tiến trình', path: '/progress' },
-    { name: 'Khóa học', path: '/courses' },
+    { name: 'Học', path: '/courses' },
+    { name: 'Ôn tập', path: '/review' },
+    { name: 'Tiến độ', path: '/progress' },
   ];
 
   return (

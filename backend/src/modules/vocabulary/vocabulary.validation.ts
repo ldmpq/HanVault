@@ -6,6 +6,8 @@ export const getVocabulariesSchema = z.object({
     limit: z.union([z.string(), z.number()]).optional(),
     hskLevel: z.union([z.string(), z.number()]).optional(),
     keyword: z.string().optional(),
+    topicId: z.union([z.string(), z.number()]).optional(),
+    ids: z.string().optional(),
   }).passthrough(),
 });
 
