@@ -54,7 +54,7 @@ export default function AvatarDropdown() {
         )}
       </button>
 
-      {/* ================= DROPDOWN MENU (FACEBOOK STYLE) ================= */}
+      {/* ================= DROPDOWN MENU  ================= */}
       {isOpen && (
         <div className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-[0_12px_40px_rgb(0,0,0,0.12)] border border-gray-100 p-3 z-50 animate-fade-in origin-top-right">
 
@@ -79,7 +79,10 @@ export default function AvatarDropdown() {
             </div>
 
             <div className="border-t border-gray-100 pt-2.5">
-              <div className="w-full bg-[#F3F4F6] group-hover:bg-red-50 group-hover:text-[#A82B2B] text-gray-700 font-bold text-xs py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors">
+              <div
+                onClick={() => { setIsOpen(false); navigate('/profile'); }}
+                className="w-full bg-[#F3F4F6] group-hover:bg-red-50 group-hover:text-[#A82B2B] text-gray-700 font-bold text-xs py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              >
                 Xem trang cá nhân <ChevronRight className="w-4 h-4" />
               </div>
             </div>
@@ -87,7 +90,10 @@ export default function AvatarDropdown() {
 
           {/* Nhóm Tính năng & Cài đặt */}
           <div className="space-y-1">
-            <button onClick={() => { setIsOpen(false); navigate('/settings'); }} className="w-full flex items-center justify-between p-2.5 text-sm font-medium text-gray-700 rounded-xl hover:bg-gray-50 transition-colors">
+            <button
+              onClick={() => { setIsOpen(false); navigate('/settings'); }}
+              className="w-full flex items-center justify-between p-2.5 text-sm font-medium text-gray-700 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer"
+            >
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center">
                   <Settings className="w-4 h-4 text-gray-600" />

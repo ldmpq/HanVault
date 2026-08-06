@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Search, SlidersHorizontal, X, History, Trash2, CheckCircle2, Heart } from 'lucide-react';
+import { useAuthStore } from '../shared/store/authStore';
 
 interface SearchFilterBarProps {
   searchTerm: string;
@@ -33,6 +34,9 @@ export default function SearchFilterBar({
   placeholder = 'Tìm kiếm từ vựng (Hán tự, Pinyin, Nghĩa)...',
   filterLabel = 'Bộ lọc nâng cao',
 }: SearchFilterBarProps) {
+
+  const user = useAuthStore((state) => state.user);
+  const storageKey = user?.email ? `hanvault_recent_searches_${user.email}` : 'hanvault_recent_searches';
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
@@ -40,19 +44,29 @@ export default function SearchFilterBar({
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Tự động lưu từ khóa gần đây (Debounce 1 giây)
   useEffect(() => {
-    if (searchTerm.trim()) {
+    if (!user) return;
+    const saved = localStorage.getItem(storageKey);
+    if (saved) {
+      setRecentSearches(JSON.parse(saved));
+    } else {
+      setRecentSearches([]);
+    }
+  }, [storageKey, user]);
+
+  useEffect(() => {
+    if (searchTerm.trim() && user) {
       const timer = setTimeout(() => {
         setRecentSearches((prev) => {
-          const newSearches = [searchTerm.trim(), ...prev.filter(item => item !== searchTerm.trim())].slice(0, 5);
-          localStorage.setItem('hanvault_recent_searches', JSON.stringify(newSearches));
+          const term = searchTerm.trim();
+          const newSearches = [term, ...prev.filter(item => item !== term)].slice(0, 5);
+          localStorage.setItem(storageKey, JSON.stringify(newSearches));
           return newSearches;
         });
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [searchTerm]);
+  }, [searchTerm, storageKey, user]);
 
   const hskOptions = [
     { label: 'HSK 1', value: '1' }, 
@@ -124,7 +138,7 @@ export default function SearchFilterBar({
                   <div className="flex justify-between items-center mb-3">
                     <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Từ khóa gần đây</h3>
                     <button 
-                      onClick={() => { setRecentSearches([]); localStorage.removeItem('hanvault_recent_searches'); }}
+                      onClick={() => { setRecentSearches([]); localStorage.removeItem(storageKey); }}
                       className="text-[10px] text-gray-400 hover:text-red-500 flex items-center gap-1 uppercase font-bold"
                     >
                       <Trash2 className="w-3 h-3" /> Xóa lịch sử

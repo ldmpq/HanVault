@@ -9,13 +9,49 @@ import { generateTokens, TokenPayload } from './auth.utility';
 import { RegisterInput, LoginInput } from './auth.validation';
 
 export class AuthService {
-  /**
-   * 1. ĐĂNG KÝ TÀI KHOẢN MỚI
-   */
+  // HÀM NỘI BỘ: TỰ ĐỘNG CẬP NHẬT STREAK KHI USER MỞ APP HOẶC ĐĂNG NHẬP
+  private static async updateUserStreak(userId: string) {
+    const userStreak = await db.query.userStreaks.findFirst({
+      where: eq(userStreaks.userId, userId),
+    });
+
+    if (!userStreak) return;
+
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+    // 1. Nếu chuỗi đã được cập nhật vào hôm nay thì bỏ qua
+    if (userStreak.lastStudyDate === todayStr) {
+      return;
+    }
+
+    // 2. Tính toán Streak mới
+    let newStreak = 1;
+
+    if (userStreak.lastStudyDate === yesterdayStr) {
+      newStreak = (userStreak.currentStreak || 0) + 1;
+    }
+
+    const newLongest = Math.max(newStreak, userStreak.longestStreak || 0);
+
+    // 3. Lưu vào Database
+    await db.update(userStreaks)
+      .set({
+        currentStreak: newStreak,
+        longestStreak: newLongest,
+        lastStudyDate: todayStr,
+      })
+      .where(eq(userStreaks.userId, userId));
+  }
+
+  // 1. ĐĂNG KÝ TÀI KHOẢN MỚI
   static async register(input: RegisterInput): Promise<{ user: UserResponse; tokens: { accessToken: string; refreshToken: string } }> {
     const { email, password, displayName } = input;
 
-    // Kiểm tra xem email đã tồn tại trong hệ thống chưa
     const existingUser = await db.query.users.findFirst({
       where: eq(users.email, email.toLowerCase()),
     });
@@ -24,41 +60,40 @@ export class AuthService {
       throw new Error('EMAIL_EXISTS: Email này đã được đăng ký trong hệ thống!');
     }
 
-    // Băm mật khẩu
     const hashedPassword = await hashPassword(password);
 
     // Sử dụng Transaction để tạo đồng thời User và UserStreak
     const newUser = await db.transaction(async (tx) => {
-      // 1. Insert User mới
+      // 1.1. Insert User mới
       const [insertedUser] = await tx
         .insert(users)
         .values({
           email: email.toLowerCase(),
           passwordHash: hashedPassword,
-          displayName: displayName || email.split('@')[0], // Nếu không truyền tên thì lấy phần đầu của email
+          displayName: displayName || email.split('@')[0],
           currentHskLevel: 1,
           dailyGoal: 20,
         })
         .returning();
 
-      // 2. Khởi tạo luôn bảng Streak cho user này (tránh lỗi NULL khi học sau này)
+      // 1.2. Khởi tạo luôn bảng Streak cho user này, thiết lập chuỗi ngày 1 ngay khi tạo tài khoản
+      const todayStr = new Date().toISOString().split('T')[0];
       await tx.insert(userStreaks).values({
         userId: insertedUser.id,
-        currentStreak: 0,
-        longestStreak: 0,
+        currentStreak: 1,
+        longestStreak: 1,
+        lastStudyDate: todayStr,
       });
 
       return insertedUser;
     });
 
-    // Tạo JWT Tokens
     const tokenPayload: TokenPayload = {
       userId: newUser.id,
       email: newUser.email,
     };
     const tokens = generateTokens(tokenPayload);
 
-    // Loại bỏ passwordHash trước khi trả về
     const { passwordHash, ...userResponse } = newUser;
 
     return {
@@ -67,13 +102,10 @@ export class AuthService {
     };
   }
 
-  /**
-   * 2. ĐĂNG NHẬP HỆ THỐNG
-   */
+  // 2. ĐĂNG NHẬP HỆ THỐNG
   static async login(input: LoginInput): Promise<{ user: UserResponse; tokens: { accessToken: string; refreshToken: string } }> {
     const { email, password } = input;
 
-    // Tìm user theo email
     const user = await db.query.users.findFirst({
       where: eq(users.email, email.toLowerCase()),
     });
@@ -82,27 +114,26 @@ export class AuthService {
       throw new Error('INVALID_CREDENTIALS: Email hoặc mật khẩu không chính xác!');
     }
 
-    // Kiểm tra mật khẩu
     const isPasswordValid = await comparePassword(password, user.passwordHash);
     if (!isPasswordValid) {
       throw new Error('INVALID_CREDENTIALS: Email hoặc mật khẩu không chính xác!');
     }
 
-    // Cập nhật thời gian đăng nhập gần nhất (lastLoginAt)
     const [updatedUser] = await db
       .update(users)
       .set({ lastLoginAt: new Date() })
       .where(eq(users.id, user.id))
       .returning();
 
-    // Tạo JWT Tokens
+    // KIỂM TRA VÀ CẬP NHẬT STREAK KHI ĐĂNG NHẬP
+    await this.updateUserStreak(updatedUser.id);
+
     const tokenPayload: TokenPayload = {
       userId: updatedUser.id,
       email: updatedUser.email,
     };
     const tokens = generateTokens(tokenPayload);
 
-    // Loại bỏ passwordHash
     const { passwordHash, ...userResponse } = updatedUser;
 
     return {
@@ -111,15 +142,11 @@ export class AuthService {
     };
   }
 
-  /**
-   * 3. CẤP LẠI ACCESS TOKEN (REFRESH TOKEN)
-   */
+  // 3. CẤP LẠI ACCESS TOKEN (REFRESH TOKEN)
   static async refreshToken(oldRefreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
     try {
-      // Giải mã và xác thực Refresh Token
       const decoded = jwt.verify(oldRefreshToken, env.JWT_REFRESH_SECRET) as TokenPayload;
 
-      // Kiểm tra xem user có còn tồn tại trong DB không (đề phòng user đã bị xóa hoặc khóa)
       const user = await db.query.users.findFirst({
         where: eq(users.id, decoded.userId),
       });
@@ -128,7 +155,6 @@ export class AuthService {
         throw new Error('USER_NOT_FOUND: Tài khoản không còn tồn tại.');
       }
 
-      // Cập nhật cặp token mới
       const newPayload: TokenPayload = {
         userId: user.id,
         email: user.email,
@@ -140,14 +166,15 @@ export class AuthService {
     }
   }
 
-  /**
-   * 4. LẤY THÔNG TIN PROFILE HIỆN TẠI (ME)
-   */
+  // 4. LẤY THÔNG TIN PROFILE HIỆN TẠI
   static async getMe(userId: string): Promise<UserResponse> {
+    // KIỂM TRA VÀ CẬP NHẬT STREAK MỖI LẦN VÀO APP
+    await this.updateUserStreak(userId);
+
     const user = await db.query.users.findFirst({
       where: eq(users.id, userId),
       with: {
-        streak: true, // Query lấy luôn thông tin streak của user nhờ Drizzle Relations!
+        streak: true,
       },
     });
 

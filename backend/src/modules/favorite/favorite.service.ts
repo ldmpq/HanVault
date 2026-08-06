@@ -4,12 +4,11 @@ import { eq, and } from 'drizzle-orm';
 
 export class FavoriteService {
   static async toggleFavorite(userId: string, vocabularyId: number) {
-    // 1. Tìm bộ thẻ Yêu thích bằng cú pháp SQL chuẩn (An toàn tuyệt đối)
+    // 1. Tìm bộ thẻ Yêu thích
     const favDecks = await db.select()
       .from(decks)
       .where(and(
         eq(decks.ownerId, userId),
-        eq(decks.isSystem, true),
         eq(decks.name, '❤️ Từ vựng Yêu thích')
       ))
       .limit(1);
@@ -22,7 +21,7 @@ export class FavoriteService {
         ownerId: userId,
         name: '❤️ Từ vựng Yêu thích',
         description: 'Bộ thẻ tự động chứa các từ vựng bạn đã lưu lại để ôn tập.',
-        isSystem: true,
+        isSystem: false,
         isPublic: false
       }).returning();
       favDeck = newDeck;
@@ -58,7 +57,6 @@ export class FavoriteService {
       .from(decks)
       .where(and(
         eq(decks.ownerId, userId),
-        eq(decks.isSystem, true),
         eq(decks.name, '❤️ Từ vựng Yêu thích')
       ))
       .limit(1);

@@ -1,14 +1,7 @@
 import { Request, Response } from 'express';
 import { eq, and, sql, gte, lte, desc } from 'drizzle-orm';
 import { db } from '../../config/database';
-import {
-  users,
-  userStreaks,
-  userVocabularyProgress,
-  vocabularies,
-  reviewLogs,
-  quizzes,
-} from '../../shared/schema';
+import { users, userStreaks, userVocabularyProgress, reviewLogs, quizzes } from '../../shared/schema';
 
 export const getDashboardData = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -19,14 +12,20 @@ export const getDashboardData = async (req: Request, res: Response): Promise<voi
       return;
     }
 
-    // Thiết lập mốc thời gian
+    // Thiết lập các mốc thời gian chuẩn
     const now = new Date();
     const startOfToday = new Date(now.setHours(0, 0, 0, 0));
     const endOfToday = new Date(now.setHours(23, 59, 59, 999));
     
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
-    sevenDaysAgo.setHours(0, 0, 0, 0);
+    // Mốc tính thẻ quá hạn (Trễ hơn 1 ngày)
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    yesterday.setHours(23, 59, 59, 999);
+
+    // Mốc 90 ngày cho Heatmap
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 89);
+    ninetyDaysAgo.setHours(0, 0, 0, 0);
 
     const [
       userRecordArr,
@@ -34,8 +33,8 @@ export const getDashboardData = async (req: Request, res: Response): Promise<voi
       streakRecordArr,
       masteredCountResult,
       upcomingQuizArr,
-      weeklyLogs,
-      dueFlashcardArr
+      heatmapLogs,
+      srsStatsResult
     ] = await Promise.all([
       // QUERY 1: User & Daily Goal
       db.select({ displayName: users.displayName, dailyGoal: users.dailyGoal })
@@ -55,7 +54,7 @@ export const getDashboardData = async (req: Request, res: Response): Promise<voi
       db.select({ currentStreak: userStreaks.currentStreak })
         .from(userStreaks).where(eq(userStreaks.userId, userId)),
 
-      // QUERY 5: Từ đã Mastered
+      // QUERY 4: Từ đã Mastered
       db.select({ count: sql<number>`count(*)` })
         .from(userVocabularyProgress)
         .where(
@@ -65,30 +64,26 @@ export const getDashboardData = async (req: Request, res: Response): Promise<voi
           )
         ),
 
-      // QUERY 6: Upcoming Quiz
+      // QUERY 5: Upcoming Quiz
       db.select({ title: quizzes.title }).from(quizzes).orderBy(desc(quizzes.id)).limit(1),
 
-      // QUERY 7: Weekly Logs
+      // QUERY 6: Heatmap 90 ngày
       db.select({
-          dateStr: sql<string>`TO_CHAR(${reviewLogs.reviewedAt}, 'YYYY-MM-DD')`, // Nhóm theo YYYY-MM-DD cho chính xác tuyệt đối
+          dateStr: sql<string>`TO_CHAR(${reviewLogs.reviewedAt}, 'YYYY-MM-DD')`,
           count: sql<number>`count(distinct ${reviewLogs.vocabularyId})::int`,
         })
         .from(reviewLogs)
-        .where(and(eq(reviewLogs.userId, userId), gte(reviewLogs.reviewedAt, sevenDaysAgo)))
+        .where(and(eq(reviewLogs.userId, userId), gte(reviewLogs.reviewedAt, ninetyDaysAgo)))
         .groupBy(sql`TO_CHAR(${reviewLogs.reviewedAt}, 'YYYY-MM-DD')`),
 
-      // QUERY 4: Flashcard sắp tới hạn (hoặc random nếu không có)
-      db.query.userVocabularyProgress.findFirst({
-        where: and(
-          eq(userVocabularyProgress.userId, userId),
-          lte(userVocabularyProgress.nextReviewAt, new Date())
-        ),
-        with: {
-          vocabulary: {
-            with: { meanings: { limit: 1 } }
-          }
-        }
+      // QUERY 7: Thống kê tổng quan thẻ SRS (Thay thế cho việc fetch 1 flashcard đơn lẻ)
+      db.select({
+        newCount: sql<number>`SUM(CASE WHEN ${userVocabularyProgress.status} = 'new' THEN 1 ELSE 0 END)::int`,
+        readyCount: sql<number>`SUM(CASE WHEN ${userVocabularyProgress.nextReviewAt} <= ${new Date().toISOString()} AND ${userVocabularyProgress.nextReviewAt} > ${yesterday.toISOString()} THEN 1 ELSE 0 END)::int`,
+        overdueCount: sql<number>`SUM(CASE WHEN ${userVocabularyProgress.nextReviewAt} <= ${yesterday.toISOString()} THEN 1 ELSE 0 END)::int`,
       })
+      .from(userVocabularyProgress)
+      .where(eq(userVocabularyProgress.userId, userId))
     ]);
 
     // =========================================================================
@@ -99,55 +94,29 @@ export const getDashboardData = async (req: Request, res: Response): Promise<voi
     const streakCount = streakRecordArr[0]?.currentStreak || 0;
     const masteredCount = Number(masteredCountResult[0]?.count || 0);
 
-    // =========================================================================
-    // FIX LOGIC BIỂU ĐỒ 7 NGÀY
-    // =========================================================================
-    // Tạo mảng 7 ngày chuẩn (từ quá khứ đến hôm nay)
-    const maxCount = Math.max(...weeklyLogs.map(item => Number(item.count)), 1);
-    const weeklyProgress = [];
-    const dayNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S']; // Map Chủ Nhật (0) -> Thứ Bảy (6)
+    // Tạo mảng 90 phần tử (chứa các số từ 0 -> 4) cho UI Heatmap
+    const weeklyProgress: number[] = [];
+    const heatmapMap = new Map(heatmapLogs.map(log => [log.dateStr, Number(log.count)]));
     
-    for (let i = 6; i >= 0; i--) {
+    // Quét từ 89 ngày trước cho đến hôm nay
+    for (let i = 89; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      const dateString = d.toISOString().split('T')[0]; // Format: YYYY-MM-DD
-      const dayLabel = dayNames[d.getDay()];
-
-      // Tìm xem ngày này có dữ liệu trong SQL trả về không
-      const matchedLog = weeklyLogs.find(log => log.dateStr === dateString);
-      const count = matchedLog ? matchedLog.count : 0;
-      const percentage = Math.round((count / maxCount) * 100);
-
-      weeklyProgress.push({
-        day: dayLabel,
-        percentage: percentage > 0 ? percentage : 15,
-        isPeak: percentage === 100 && count > 0,
-      });
+      const dateString = d.toISOString().split('T')[0];
+      
+      const count = heatmapMap.get(dateString) || 0;
+      
+      // Chia cấp độ màu sắc dựa trên số lượng thẻ ôn tập
+      let level = 0;
+      if (count >= dailyTarget * 2) level = 4; // Vượt 200% mục tiêu
+      else if (count >= dailyTarget) level = 3; // Đạt mục tiêu
+      else if (count >= dailyTarget / 2) level = 2; // Đạt 50% mục tiêu
+      else if (count > 0) level = 1; // Có học nhưng ít
+      
+      weeklyProgress.push(level);
     }
 
-    // =========================================================================
-    // LOGIC FLASHCARD TIẾP THEO
-    // =========================================================================
-    let nextCardData = {
-      simplified: '你好',
-      pinyin: 'nǐ hǎo',
-      meaning: 'Xin chào',
-      partOfSpeech: 'Greeting',
-    };
-
-    if (dueFlashcardArr && dueFlashcardArr.vocabulary) {
-      const v = dueFlashcardArr.vocabulary;
-      nextCardData = {
-        simplified: v.simplified,
-        pinyin: v.pinyin,
-        meaning: v.meanings.length > 0 ? v.meanings[0].meaning : 'Chưa cập nhật',
-        partOfSpeech: v.partOfSpeech || 'Từ vựng',
-      };
-    }
-
-    // =========================================================================
-    // TRẢ VỀ RESPONSE
-    // =========================================================================
+    // RESPONSE: Trả về dữ liệu Dashboard cho frontend
     res.status(200).json({
       success: true,
       message: 'Dashboard data fetched successfully',
@@ -155,14 +124,18 @@ export const getDashboardData = async (req: Request, res: Response): Promise<voi
         userName: userRecordArr[0]?.displayName || 'Learner',
         dailyGoal: { current: dailyCurrent, target: dailyTarget },
         streak: streakCount,
-        flashcard: nextCardData,
+        flashcard: {
+          new: srsStatsResult[0]?.newCount || 0,
+          ready: srsStatsResult[0]?.readyCount || 0,
+          overdue: srsStatsResult[0]?.overdueCount || 0,
+        },
         nextQuiz: {
           date: 'Ngày mai',
           title: upcomingQuizArr[0]?.title || 'Chưa có bài kiểm tra',
         },
         mastered: {
           count: masteredCount,
-          percentage: 12, 
+          percentage: 12,
         },
         weeklyProgress,
       },

@@ -8,7 +8,6 @@ export interface Deck {
   hskLevel?: number;
   progress: number;
   words?: number;
-  
   tag?: string;
   bgColor?: string;
   iconColor?: string;

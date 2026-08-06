@@ -40,4 +40,4 @@ const swaggerOptions: swaggerJSDoc.Options = {
 export const swaggerSpec = swaggerJSDoc(swaggerOptions);
 
 const totalPaths = Object.keys((swaggerSpec as any).paths || {}).length;
-console.log(`🔎 Swagger đã tìm thấy: ${totalPaths} endpoints trong code! (Path: ${routesPath})`);
+console.log(`🔎 Swagger tìm thấy: ${totalPaths} endpoints! (Path: ${routesPath})`);

@@ -168,4 +168,7 @@ router.post('/:id/items', authenticateJwt, validate(addItemsSchema), DeckControl
  */
 router.post('/:id/start', authenticateJwt, DeckController.startStudy);
 
+router.put('/:id', authenticateJwt, DeckController.updateDeck);
+router.delete('/:id', authenticateJwt, DeckController.deleteDeck);
+
 export default router;

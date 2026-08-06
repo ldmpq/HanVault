@@ -8,6 +8,7 @@ import vocabularyRoutes from './modules/vocabulary/vocabulary.route';
 import srsRoutes from './modules/srs/srs.route';
 import dashboardRoutes from './modules/dashboard/dashboard.route';
 import libraryRoutes from './modules/library/library.route';
+import deckRoutes from './modules/deck/deck.route';
 // import quizRoutes from './modules/quiz/quiz.route';
 import topicRoutes from './modules/topic/topic.route';
 import favoriteRoutes from './modules/favorite/favorite.route';
@@ -40,6 +41,9 @@ app.use('/api/vocabularies', vocabularyRoutes);
 
 // Library routes
 app.use('/api/library', libraryRoutes);
+
+// Deck routes
+app.use('/api/decks', deckRoutes);
 
 // SRS Study routes
 app.use('/api/srs', srsRoutes);

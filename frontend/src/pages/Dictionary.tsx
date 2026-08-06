@@ -1,113 +1,22 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Heart, Volume2, DatabaseBackup } from 'lucide-react';
-import axiosClient from '../shared/lib/axiosClient';
-import type { Vocabulary } from '../shared/types/vocabulary.types';
+import { DatabaseBackup } from 'lucide-react';
 import { useTextToSpeech } from '../shared/hooks/useTextToSpeech';
 import Pagination from '../components/Pagination';
 import SearchFilterBar from '../components/SearchFilterBar';
+import { useDictionary } from '../shared/hooks/useDictionary';
+import DictionaryCard from '../components/DictionaryCard';
 
 export default function Dictionary() {
-  const navigate = useNavigate();
   const { playAudio } = useTextToSpeech();
-  
-  const [words, setWords] = useState<Vocabulary[]>([]);
-  const [topics, setTopics] = useState<any[]>([]);
-  const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set());
-  
-  const [searchTerm, setSearchTerm] = useState('');
-  const [hskFilter, setHskFilter] = useState(''); 
-  const [topicFilter, setTopicFilter] = useState('');
-  const [showFavorites, setShowFavorites] = useState(false);
-  
-  const [isLoading, setIsLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
 
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        const [topicRes, favRes] = await Promise.all([
-          axiosClient.get('/topics'),
-          axiosClient.get('/favorites/ids').catch(() => ({ data: { data: [] } }))
-        ]);
-        if (topicRes.data.success) setTopics(topicRes.data.data);
-        if (favRes.data?.data) setFavoriteIds(new Set(favRes.data.data));
-      } catch (error) {
-        console.error('Lỗi tải dữ liệu khởi tạo:', error);
-      }
-    };
-    fetchInitialData();
-  }, []);
-
-  useEffect(() => {
-    const fetchVocabularies = async () => {
-      if (showFavorites && favoriteIds.size === 0) {
-        setWords([]);
-        setTotalPages(1);
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        setIsLoading(true);
-        const params: Record<string, any> = { page: currentPage, limit: 25 };
-        
-        if (searchTerm.trim() !== '') params.keyword = searchTerm.trim();
-        if (hskFilter !== '') params.hskLevel = hskFilter;
-        if (topicFilter !== '') params.topicId = topicFilter;
-        
-        if (showFavorites && favoriteIds.size > 0) {
-          params.ids = Array.from(favoriteIds).join(',');
-        }
-
-        const response = await axiosClient.get(`/vocabularies`, { params });
-        
-        if (response.data.success) {
-          const items = response.data.data || response.data.vocabularies || [];
-          const formattedWords: Vocabulary[] = items.map((item: any) => ({
-            id: item.id,
-            simplified: item.simplified,
-            pinyin: item.pinyin,
-            meaning: item.meanings?.find((m: any) => m.languageCode === 'vi')?.meaning 
-                  || item.meanings?.[0]?.meaning || item.meaning || 'Chưa cập nhật',
-            hskLevel: item.hskLevel,
-          }));
-          setWords(formattedWords);
-          if (response.data.pagination) setTotalPages(response.data.pagination.totalPages || 1);
-        }
-      } catch (error: any) {
-        setWords([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    const delayDebounceFn = setTimeout(() => fetchVocabularies(), 300);
-    return () => clearTimeout(delayDebounceFn);
-  }, [currentPage, searchTerm, hskFilter, topicFilter, showFavorites, favoriteIds]);
-
-  const toggleFavorite = async (e: React.MouseEvent, id: number) => {
-    e.stopPropagation();
-    setFavoriteIds(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-
-    try {
-      await axiosClient.post('/favorites/toggle', { vocabularyId: id });
-    } catch (error: any) {
-      setFavoriteIds(prev => {
-        const next = new Set(prev);
-        if (next.has(id)) next.delete(id);
-        else next.add(id);
-        return next;
-      });
-      alert("Vui lòng đăng nhập để lưu từ vựng!");
-    }
-  };
+  const {
+    words, topics, favoriteIds, isLoading,
+    searchTerm, setSearchTerm,
+    hskFilter, setHskFilter,
+    topicFilter, setTopicFilter,
+    showFavorites, setShowFavorites,
+    currentPage, setCurrentPage, totalPages,
+    toggleFavorite
+  } = useDictionary();
 
   return (
     <div className="min-h-screen bg-[#FCFAF8] font-sans pb-24 animate-fade-in relative">
@@ -142,34 +51,24 @@ export default function Dictionary() {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-5">
-            {words.map((word) => {
-              const isFav = favoriteIds.has(word.id);
-              return (
-                <div key={word.id} onClick={() => navigate(`/word/${word.id}`, { state: { from: 'dictionary' } })} className="bg-white rounded-2xl p-4 flex flex-col items-center text-center shadow-[0_2px_8px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_20px_rgb(0,0,0,0.08)] transition-all cursor-pointer border border-gray-100 h-full">
-                  <div className="flex justify-between items-start w-full mb-3">
-                    <button onClick={(e) => toggleFavorite(e, word.id)} className="text-gray-300 hover:text-[#A82B2B] transition-colors">
-                      <Heart className="w-5 h-5" fill={isFav ? "#A82B2B" : "none"} color={isFav ? "#A82B2B" : "currentColor"} />
-                    </button>
-                    <span className="bg-[#F3F4F6] text-gray-600 text-[10px] font-bold px-2 py-1 rounded">HSK {word.hskLevel}</span>
-                  </div>
-                  <h2 className={`${word.simplified.length > 2 ? 'text-4xl' : 'text-6xl'} font-medium text-[#1A1A1A] leading-none mb-3`}>
-                    {word.simplified}
-                  </h2>
-                  <p className="text-sm font-medium text-[#A82B2B] mb-2">{word.pinyin}</p>
-                  <p className="text-xs text-gray-700 px-1 line-clamp-2 leading-relaxed min-h-[32px]">{word.meaning}</p>
-                  <div className="mt-auto pt-4 w-full flex justify-center">
-                    <button onClick={(e) => { e.stopPropagation(); playAudio(e, word.simplified); }} className="w-9 h-9 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full flex items-center justify-center transition-colors">
-                      <Volume2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+            {words.map((word) => (
+              <DictionaryCard 
+                key={word.id} 
+                word={word} 
+                isFav={favoriteIds.has(word.id)}
+                onToggleFavorite={toggleFavorite}
+                onPlayAudio={playAudio}
+              />
+            ))}
           </div>
         )}
 
         {!isLoading && (
-          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={(page) => setCurrentPage(page)} />
+          <Pagination 
+            currentPage={currentPage} 
+            totalPages={totalPages} 
+            onPageChange={(page) => setCurrentPage(page)} 
+          />
         )}
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { eq, and, ilike, desc, sql } from 'drizzle-orm';
+import { eq, and, ilike, desc, sql, or } from 'drizzle-orm';
 import { db } from '../../config/database';
 import { decks, deckItems, userDecks, vocabularies } from '../../shared/schema';
 import { GetDecksQuery, CreateDeckInput, AddItemsInput } from './deck.validation';
@@ -15,6 +15,14 @@ export class DeckService {
     if (hskLevel) conditions.push(eq(decks.hskLevel, hskLevel));
     if (isSystem !== undefined) conditions.push(eq(decks.isSystem, isSystem));
     if (keyword) conditions.push(ilike(decks.name, `%${keyword}%`));
+
+    if (isSystem !== undefined && currentUserId) {
+      conditions.push(or(eq(decks.isSystem, isSystem), eq(decks.ownerId, currentUserId)));
+    } else if (isSystem !== undefined) {
+      conditions.push(eq(decks.isSystem, isSystem));
+    } else if (currentUserId) {
+      conditions.push(eq(decks.ownerId, currentUserId));
+    }
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
@@ -137,7 +145,7 @@ export class DeckService {
   }
 
   /**
-   * 5. NGƯỜI DÙNG BẤM "BẮT ĐẦU HỌC" BỘ THẺ NÀY (TRACKING PROGRESS)
+   * 5. USER BẤM "BẮT ĐẦU HỌC" BỘ THẺ NÀY (TRACKING PROGRESS)
    */
   static async startStudyDeck(deckId: number, userId: string) {
     const deck = await db.query.decks.findFirst({ where: eq(decks.id, deckId) });
@@ -161,5 +169,27 @@ export class DeckService {
       .returning();
 
     return { message: 'Bắt đầu hành trình chinh phục bộ thẻ thành công! 🚀', progress: newProgress };
+  }
+
+  static async updateDeck(deckId: number, input: Partial<CreateDeckInput>, userId: string) {
+    const deck = await db.query.decks.findFirst({ where: eq(decks.id, deckId) });
+    if (!deck) throw new Error('DECK_NOT_FOUND: Bộ thẻ không tồn tại.');
+    if (deck.ownerId !== userId) throw new Error('FORBIDDEN: Không có quyền sửa bộ thẻ này.');
+
+    await db.update(decks).set({
+      name: input.name,
+      description: input.description,
+      updatedAt: new Date(),
+    }).where(eq(decks.id, deckId));
+
+    return true;
+  }
+
+  static async deleteDeck(deckId: number, userId: string) {
+    const deck = await db.query.decks.findFirst({ where: eq(decks.id, deckId) });
+    if (!deck) throw new Error('DECK_NOT_FOUND: Bộ thẻ không tồn tại.');
+    if (deck.ownerId !== userId) throw new Error('FORBIDDEN: Không có quyền xóa bộ thẻ này.');
+    await db.delete(decks).where(eq(decks.id, deckId));
+    return true;
   }
 }

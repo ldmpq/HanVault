@@ -1,47 +1,18 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
-import axiosClient from '../shared/lib/axiosClient';
-import { useAuthStore } from '../shared/store/authStore';
+import { Link } from 'react-router-dom';
 import AuthLayout from '../components/AuthLayout';
+import { useSignIn } from '../shared/hooks/useSignIn';
 
 export default function SignIn() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  
-  const navigate = useNavigate();
-  const setToken = useAuthStore((state) => state.setToken);
 
-  const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    try {
-      const response = await axiosClient.post('/auth/login', { email, password });
-      const accessToken = 
-        response.data.data?.tokens?.accessToken ||
-        response.data.data?.accessToken ||
-        response.data.accessToken ||
-        response.data.token;
-      
-      if (accessToken) {
-        setToken(accessToken);
-        navigate('/dashboard');
-      } else {
-        setError('Đăng nhập thành công nhưng không tìm thấy Token.');
-      }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Email hoặc mật khẩu không chính xác.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { 
+    email, setEmail, 
+    password, setPassword, 
+    loading, error, handleSignIn 
+  } = useSignIn();
 
   return (
     <AuthLayout

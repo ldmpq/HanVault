@@ -70,4 +70,28 @@ export class DeckController {
       throw error;
     }
   }
+
+  static async updateDeck(req: Request, res: Response): Promise<void> {
+    try {
+      const id = Number(req.params.id);
+      const userId = (req as any).user!.userId;
+      const result = await DeckService.updateDeck(id, req.body, userId);
+      res.status(200).json({ success: true, data: result });
+    } catch (error) {
+      const err = error as Error;
+      res.status(403).json({ success: false, message: err.message });
+    }
+  }
+
+  static async deleteDeck(req: Request, res: Response): Promise<void> {
+    try {
+      const id = Number(req.params.id);
+      const userId = (req as any).user!.userId;
+      await DeckService.deleteDeck(id, userId);
+      res.status(200).json({ success: true, message: 'Đã xóa bộ thẻ' });
+    } catch (error) {
+      const err = error as Error;
+      res.status(403).json({ success: false, message: err.message });
+    }
+  }
 }

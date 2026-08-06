@@ -1,55 +1,27 @@
-import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Play, Star, Heart, ArrowRight, ChevronRight } from 'lucide-react';
-import axiosClient from '../shared/lib/axiosClient';
+import { Play, Heart, ArrowRight, ChevronRight } from 'lucide-react';
 import Pagination from '../components/Pagination';
-import type { Vocabulary } from '../shared/types/vocabulary.types';
-
-const ITEMS_PER_PAGE = 20; 
+import { useDeckDetail } from '../shared/hooks/useDeckDetail';
+import DeckWordCard from '../components/DeckWordCard';
 
 export default function DeckDetail() {
   const { deckId } = useParams();
   const navigate = useNavigate();
 
-  const [deckInfo, setDeckInfo] = useState<any>(null);
-  const [words, setWords] = useState<Vocabulary[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  
-  const [currentPage, setCurrentPage] = useState(1);
-
-  useEffect(() => {
-    const fetchDeckDetails = async () => {
-      try {
-        const response = await axiosClient.get(`/library/decks/${deckId}`);
-        if (response.data.success) {
-          setDeckInfo(response.data.data.deck);
-          setWords(response.data.data.words);
-        }
-      } catch (error) {
-        console.error('Lỗi khi tải chi tiết bộ thẻ:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    if (deckId) fetchDeckDetails();
-  }, [deckId]);
-
-  // Tính toán Phân trang trực tiếp từ mảng words ban đầu
-  const totalPages = Math.ceil(words.length / ITEMS_PER_PAGE);
-  const displayedWords = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return words.slice(start, start + ITEMS_PER_PAGE);
-  }, [words, currentPage]);
+  const {
+    deckInfo,
+    words,
+    isLoading,
+    currentPage,
+    setCurrentPage,
+    totalPages,
+    displayedWords
+  } = useDeckDetail(deckId);
 
   if (isLoading) return <div className="text-center py-20 text-gray-500">Đang tải dữ liệu bộ thẻ...</div>;
   if (!deckInfo) return <div className="text-center py-20 text-red-500">Không tìm thấy bộ thẻ này!</div>;
 
-  const stats = {
-    total: words.length,
-    mastered: Math.floor(words.length * 0.2), 
-    learning: Math.floor(words.length * 0.1), 
-    progressPercent: 24
-  };
+  const stats = deckInfo.stats || { total: 0, mastered: 0, learning: 0, progressPercent: 0 };
 
   return (
     <div className="max-w-[1200px] mx-auto pb-24 animate-fade-in font-sans">
@@ -81,10 +53,6 @@ export default function DeckDetail() {
             <span className="bg-[#FFEFE5] text-[#E07A5F] text-[10px] uppercase font-bold tracking-widest px-3 py-1.5 rounded">
               Vocabulary Deck
             </span>
-            <div className="flex items-center gap-1.5 text-[#D4AF37] text-sm font-bold">
-              <Star className="w-4 h-4 fill-current" />
-              <span>4.9 <span className="text-gray-400 font-medium text-xs ml-1">(128 reviews)</span></span>
-            </div>
           </div>
 
           <h1 className="text-3xl lg:text-4xl font-medium text-gray-900 mb-5 tracking-tight">
@@ -98,15 +66,15 @@ export default function DeckDetail() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
             <div className="bg-white rounded-2xl p-5 shadow-[0_2px_15px_rgb(0,0,0,0.03)] border border-gray-50 flex flex-col items-center justify-center text-center">
               <span className="text-3xl font-bold text-[#A82B2B] mb-1">{stats.total}</span>
-              <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Total Words</span>
+              <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Tổng số từ</span>
             </div>
             <div className="bg-white rounded-2xl p-5 shadow-[0_2px_15px_rgb(0,0,0,0.03)] border border-gray-50 flex flex-col items-center justify-center text-center">
               <span className="text-3xl font-bold text-[#E08535] mb-1">{stats.mastered}</span>
-              <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Mastered</span>
+              <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Đã học thuộc</span>
             </div>
             <div className="bg-white rounded-2xl p-5 shadow-[0_2px_15px_rgb(0,0,0,0.03)] border border-gray-50 flex flex-col items-center justify-center text-center">
               <span className="text-3xl font-bold text-[#C7B745] mb-1">{stats.learning}</span>
-              <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Learning</span>
+              <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Đang học</span>
             </div>
             <div className="bg-white rounded-2xl p-5 shadow-[0_2px_15px_rgb(0,0,0,0.03)] border border-gray-50 flex items-center justify-center">
               <div className="relative w-14 h-14 flex items-center justify-center">
@@ -133,10 +101,10 @@ export default function DeckDetail() {
               disabled={words.length === 0}
               className="bg-[#A82B2B] hover:bg-[#8b2323] disabled:opacity-50 text-white px-8 py-3.5 rounded-xl font-medium text-sm flex items-center gap-2 transition-colors shadow-sm"
             >
-              <Play className="w-4 h-4 fill-current" /> Start Learning
+              <Play className="w-4 h-4 fill-current" /> Bắt đầu ôn tập
             </button>
             <button className="bg-white hover:bg-gray-50 text-[#A82B2B] px-8 py-3.5 rounded-xl font-medium text-sm flex items-center gap-2 border border-gray-200 transition-colors shadow-sm">
-              <Heart className="w-4 h-4" /> Favorite
+              <Heart className="w-4 h-4" /> Yêu thích
             </button>
           </div>
         </div>
@@ -146,11 +114,11 @@ export default function DeckDetail() {
       <div className="pt-8 border-t border-gray-100">
         <div className="flex justify-between items-end mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-1">Vocabulary Preview</h2>
-            <p className="text-gray-500 text-sm">A glimpse of the characters in this deck.</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-1">Danh sách từ vựng</h2>
+            <p className="text-gray-500 text-sm">Xem trước các từ vựng bạn sẽ học trong bộ thẻ này.</p>
           </div>
           <button className="text-[#A82B2B] text-sm font-bold flex items-center gap-1 hover:underline">
-            View All <ArrowRight className="w-4 h-4" />
+            Xem tất cả <ArrowRight className="w-4 h-4" />
           </button>
         </div>
 
@@ -162,24 +130,20 @@ export default function DeckDetail() {
           <>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
               {displayedWords.map((word) => (
-                <div
-                  key={word.id}
-                  onClick={() =>
-                    navigate(`/word/${word.id}`, {
-                      state: { deckId: deckId, deckName: deckInfo.name },
-                    })
-                  }
-                  className="bg-white rounded-2xl p-8 flex flex-col items-center justify-center shadow-[0_2px_15px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all cursor-pointer aspect-square"
-                >
-                  <h2 className={`${word.simplified.length > 2 ? 'text-5xl' : 'text-6xl'} font-bold text-gray-900 mb-4`}>
-                    {word.simplified}
-                  </h2>
-                  <p className="text-sm font-medium text-gray-500">{word.pinyin}</p>
-                </div>
+                <DeckWordCard 
+                  key={word.id} 
+                  word={word} 
+                  deckId={deckId} 
+                  deckName={deckInfo.name} 
+                />
               ))}
             </div>
 
-            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={(page) => setCurrentPage(page)} />
+            <Pagination 
+              currentPage={currentPage} 
+              totalPages={totalPages} 
+              onPageChange={(page) => setCurrentPage(page)} 
+            />
           </>
         )}
       </div>

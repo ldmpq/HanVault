@@ -15,8 +15,8 @@ import WordDetail from './pages/WordDetail';
 import DeckDetail from './pages/DeckDetail';
 import Review from './pages/Review';
 // import Progress from './pages/Progress';
-// import Profile from './pages/Profile';
-// import Settings from './pages/Settings';
+import Profile from './pages/Profile';
+import Settings from './pages/Settings';
 // import NotFound from './pages/NotFound';
 
 import ComingSoon from './pages/CommingSoon';
@@ -49,8 +49,8 @@ function App() {
           <Route path="/progress" element={<ComingSoon />} />
           <Route path="/courses" element={<ComingSoon />} />
           <Route path="/translate" element={<ComingSoon />} />
-          <Route path="/profile" element={<ComingSoon />} />
-          <Route path="/settings" element={<ComingSoon />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/settings" element={<Settings />} />
         </Route>
         
         {/* <Route path="*" element={<NotFound />} /> */}
