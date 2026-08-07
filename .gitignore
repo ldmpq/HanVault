@@ -8,3 +8,6 @@ Thumbs.db
 
 # log files
 *.log
+
+# Environment variables file
+.env
