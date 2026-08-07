@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { AuthController } from './auth.controller';
 import { validate } from '../../shared/middlewares/validate.middleware';
 import { authenticateJwt } from '../../shared/middlewares/auth.middleware';
-import { registerSchema, loginSchema, refreshTokenSchema } from './auth.validation';
+import { registerSchema, loginSchema, refreshTokenSchema, updatePasswordSchema } from './auth.validation';
 
 const router = Router();
 
@@ -117,5 +117,33 @@ router.post('/refresh-token', validate(refreshTokenSchema), AuthController.refre
  *         description: Thiếu hoặc lỗi Bearer Access Token.
  */
 router.get('/me', authenticateJwt, AuthController.getMe);
+
+/**
+ * @swagger
+ * /api/auth/update-password:
+ *   put:
+ *     summary: Cập nhật mật khẩu mới
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [currentPassword, newPassword]
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Đổi mật khẩu thành công.
+ *       400:
+ *         description: Sai mật khẩu hiện tại.
+ */
+router.put('/update-password', authenticateJwt, validate(updatePasswordSchema), AuthController.updatePassword);
 
 export default router;

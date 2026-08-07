@@ -6,7 +6,7 @@ import { users, userStreaks } from '../../shared/schema';
 import { UserResponse } from '../../shared/types/user.type';
 import { hashPassword, comparePassword } from '../../shared/utils/bcrypt.utility';
 import { generateTokens, TokenPayload } from './auth.utility';
-import { RegisterInput, LoginInput } from './auth.validation';
+import { RegisterInput, LoginInput, UpdatePasswordInput } from './auth.validation';
 
 export class AuthService {
   // HÀM NỘI BỘ: TỰ ĐỘNG CẬP NHẬT STREAK KHI USER MỞ APP HOẶC ĐĂNG NHẬP
@@ -184,5 +184,31 @@ export class AuthService {
 
     const { passwordHash, ...userResponse } = user;
     return userResponse;
+  }
+
+  // 5. CẬP NHẬT MẬT KHẨU
+  static async updatePassword(userId: string, input: UpdatePasswordInput): Promise<void> {
+    const { currentPassword, newPassword } = input;
+
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+    });
+
+    if (!user || !user.passwordHash) {
+      throw new Error('USER_NOT_FOUND: Không tìm thấy thông tin người dùng.');
+    }
+
+    // Kiểm tra mật khẩu hiện tại có đúng không
+    const isPasswordValid = await comparePassword(currentPassword, user.passwordHash);
+    if (!isPasswordValid) {
+      throw new Error('INVALID_PASSWORD: Mật khẩu hiện tại không chính xác!');
+    }
+
+    // Mã hóa mật khẩu mới và lưu vào DB
+    const hashedNewPassword = await hashPassword(newPassword);
+
+    await db.update(users)
+      .set({ passwordHash: hashedNewPassword })
+      .where(eq(users.id, userId));
   }
 }

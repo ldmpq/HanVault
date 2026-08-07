@@ -1,1 +1,30 @@
 @import "tailwindcss";
+
+@keyframes scrollVertical {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+.animate-scroll-vertical {
+  animation: scrollVertical 25s linear infinite;
+}
+.animate-scroll-vertical:hover {
+  animation-play-state: paused;
+}
+
+@keyframes slideFadeX {
+  0% { opacity: 0; transform: translateX(30px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+.animate-slide-fade-x {
+  animation: slideFadeX 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideFadeUp {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-fade-up {
+  animation: slideFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@variant dark (&:is(.dark *));

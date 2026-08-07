@@ -2,21 +2,24 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import Landing from './pages/Landing';
 
-import SignIn from './pages/SignIn';
-import Register from './pages/Register';
+import SignIn from './pages/Auth/SignIn';
+import Register from './pages/Auth/Register';
 // import ForgotPassword from './pages/ForgotPassword';
 import ProtectedRoute from './shared/router/ProtectedRoute';
 
-import DashboardLayout from './components/DashboardLayout';
-import Dashboard from './pages/Dashboard';
-import Dictionary from './pages/Dictionary';
-import Library from './pages/Library';
-import WordDetail from './pages/WordDetail';
-import DeckDetail from './pages/DeckDetail';
-import Review from './pages/Review';
-// import Progress from './pages/Progress';
-import Profile from './pages/Profile';
-import Settings from './pages/Settings';
+import DashboardLayout from './shared/components/DashboardLayout';
+import Dashboard from './pages/Dashboard/Dashboard';
+import Dictionary from './pages/Dictionary/Dictionary';
+//import Translate from './pages/Translate/Translate';
+import Library from './pages/Library/Library';
+//import Course from './pages/Course/Course
+import WordDetail from './pages/WordDetail/WordDetail';
+import DeckDetail from './pages/DeckDetail/DeckDetail';
+import Review from './pages/Review/Review';
+//import Quiz from './pages/Quiz/Quiz';
+import Progress from './pages/Progress/Progress';
+import Profile from './pages/Profile/Profile';
+import Settings from './pages/Settings/Settings';
 // import NotFound from './pages/NotFound';
 
 import ComingSoon from './pages/CommingSoon';
@@ -45,8 +48,9 @@ function App() {
           <Route path="/deck/:deckId" element={<DeckDetail />} />
           <Route path="/review" element={<Review />} />
           <Route path="/review/:deckId" element={<Review />} />
-          // Cập nhật sau (2)
-          <Route path="/progress" element={<ComingSoon />} />
+          // Cập nhật sau (4)
+          <Route path="/quiz" element={<ComingSoon />} />
+          <Route path="/progress" element={<Progress />} />
           <Route path="/courses" element={<ComingSoon />} />
           <Route path="/translate" element={<ComingSoon />} />
           <Route path="/profile" element={<Profile />} />
