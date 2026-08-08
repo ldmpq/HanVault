@@ -3,10 +3,12 @@ import AppearanceSection from './components/AppearanceSection';
 import LearningPreferencesSection from './components/LearningPreferencesSection';
 import AccountSecuritySection from './components/AccountSecuritySection';
 import NotificationsSection from './components/NotificationsSection';
+import { useTheme } from 'next-themes';
 
 export default function Settings() {
+  const { theme, setTheme } = useTheme();
+
   const {
-    theme, setTheme,
     dailyGoal, setDailyGoal,
     reviewPace, setReviewPace,
     audioAutoplay, setAudioAutoplay,
@@ -28,7 +30,7 @@ export default function Settings() {
         
         {/* ================= CỘT TRÁI ================= */}
         <div className="lg:col-span-8 space-y-8">
-          <AppearanceSection theme={theme} setTheme={setTheme} />
+          <AppearanceSection theme={theme as any} setTheme={setTheme} />
           
           <LearningPreferencesSection 
             dailyGoal={dailyGoal} setDailyGoal={setDailyGoal}
