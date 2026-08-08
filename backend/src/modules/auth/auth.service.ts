@@ -183,7 +183,10 @@ export class AuthService {
     }
 
     const { passwordHash, ...userResponse } = user;
-    return userResponse;
+    return {
+      ...userResponse,
+      email: userResponse.email || `user_${user.id.toString().slice(0, 6)}@hanvault.com`,
+    };
   }
 
   // 5. CẬP NHẬT MẬT KHẨU
