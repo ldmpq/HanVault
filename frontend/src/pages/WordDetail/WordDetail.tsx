@@ -22,14 +22,14 @@ export default function WordDetail() {
   const [activeTab, setActiveTab] = useState<'examples' | 'relations'>('examples');
   const [isDeckModalOpen, setIsDeckModalOpen] = useState(false);
 
-  if (isLoading) return <div className="text-center py-20 text-gray-500 font-medium">Đang tải chi tiết từ vựng...</div>;
-  if (!word || !word.character) return <div className="text-center py-20 text-red-500 font-medium">Không tìm thấy từ vựng này!</div>;
+  if (isLoading) return <div className="text-center py-20 text-sub font-medium">Đang tải chi tiết từ vựng...</div>;
+  if (!word || !word.character) return <div className="text-center py-20 text-brand font-medium">Không tìm thấy từ vựng này!</div>;
 
   const chars = word.character.split('');
   const hskLevel = word.hskLevel || (word as any).hsk_level || (word as any).level || 0;
 
   return (
-    <div className="max-w-[1300px] mx-auto pb-24 animate-fade-in relative">
+    <div className="max-w-[1300px] mx-auto pb-24 animate-fade-in relative text-main transition-colors">
       {renderBreadcrumbs(location.state, deckId, deckName, word.character)}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -40,11 +40,11 @@ export default function WordDetail() {
           />
 
           <div className="mt-8">
-            <div className="flex gap-8 border-b border-gray-200 mb-6 px-2">
+            <div className="flex gap-8 border-b border-line mb-6 px-2">
               <button
                 onClick={() => setActiveTab('examples')}
                 className={`pb-4 text-lg font-bold transition-all border-b-[3px] ${
-                  activeTab === 'examples' ? 'border-[#A82B2B] text-[#A82B2B]' : 'border-transparent text-gray-400 hover:text-gray-700'
+                  activeTab === 'examples' ? 'border-brand text-brand' : 'border-transparent text-sub hover:text-main'
                 }`}
               >
                 Câu ví dụ
@@ -52,7 +52,7 @@ export default function WordDetail() {
               <button
                 onClick={() => setActiveTab('relations')}
                 className={`pb-4 text-lg font-bold transition-all border-b-[3px] ${
-                  activeTab === 'relations' ? 'border-[#A82B2B] text-[#A82B2B]' : 'border-transparent text-gray-400 hover:text-gray-700'
+                  activeTab === 'relations' ? 'border-brand text-brand' : 'border-transparent text-sub hover:text-main'
                 }`}
               >
                 Từ liên quan

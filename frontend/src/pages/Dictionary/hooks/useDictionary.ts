@@ -46,7 +46,7 @@ export const useDictionary = () => {
     fetchInitialData();
   }, []);
 
-  // 2. Tìm kiếm từ vựng (Có debounce 300ms chống spam)
+  // 2. Tìm kiếm từ vựng
   useEffect(() => {
     if (!isInitialLoaded) return;
 
@@ -95,9 +95,9 @@ export const useDictionary = () => {
     const delayDebounceFn = setTimeout(() => fetchVocabularies(), 300);
     return () => clearTimeout(delayDebounceFn);
 
-  }, [currentPage, searchTerm, hskFilter, topicFilter, showFavorites, isInitialLoaded, favoriteIds.size]);
+  }, [currentPage, searchTerm, hskFilter, topicFilter, showFavorites, isInitialLoaded]);
 
-  // 3. Logic thêm/xóa yêu thích (Optimistic Update - Cập nhật UI trước khi gọi API)
+  // 3. Logic thêm/xóa yêu thích
   const toggleFavorite = async (e: React.MouseEvent, rawId: number) => {
     e.stopPropagation();
     const numId = Number(rawId);
@@ -112,7 +112,6 @@ export const useDictionary = () => {
     try {
       await axiosClient.post('/favorites/toggle', { vocabularyId: numId });
     } catch (error: any) {
-      // Revert lại state nếu API lỗi
       setFavoriteIds(prev => {
         const next = new Set(prev);
         if (next.has(numId)) next.delete(numId);

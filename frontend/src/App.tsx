@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useSettings } from './pages/Settings/hooks/useSettings';
 
 import Landing from './pages/Landing';
 
@@ -10,28 +11,29 @@ import ProtectedRoute from './shared/router/ProtectedRoute';
 import DashboardLayout from './shared/components/DashboardLayout';
 import Dashboard from './pages/Dashboard/Dashboard';
 import Dictionary from './pages/Dictionary/Dictionary';
-//import Translate from './pages/Translate/Translate';
+// import Translate from './pages/Translate/Translate';
 import Library from './pages/Library/Library';
 //import Course from './pages/Course/Course
 import WordDetail from './pages/WordDetail/WordDetail';
 import DeckDetail from './pages/DeckDetail/DeckDetail';
 import Review from './pages/Review/Review';
-//import Quiz from './pages/Quiz/Quiz';
+// import Quiz from './pages/Quiz/Quiz';
 import Progress from './pages/Progress/Progress';
 import Profile from './pages/Profile/Profile';
 import Settings from './pages/Settings/Settings';
-// import NotFound from './pages/NotFound';
+import NotFound from './shared/components/NotFound';
 
 import ComingSoon from './pages/CommingSoon';
 
 function App() {
+  useSettings();
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<SignIn />} />
         <Route path="/register" element={<Register />} />
-        // Cập nhật sau (1)
+        {/* Sẽ cập nhật sau (1) */}
         <Route path="/forgot-password" element={<ComingSoon />} />
 
         <Route
@@ -48,7 +50,7 @@ function App() {
           <Route path="/deck/:deckId" element={<DeckDetail />} />
           <Route path="/review" element={<Review />} />
           <Route path="/review/:deckId" element={<Review />} />
-          // Cập nhật sau (4)
+          {/* Sẽ cập nhật sau (3) */}
           <Route path="/quiz" element={<ComingSoon />} />
           <Route path="/progress" element={<Progress />} />
           <Route path="/courses" element={<ComingSoon />} />
@@ -56,9 +58,8 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
-        
-        {/* <Route path="*" element={<NotFound />} /> */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

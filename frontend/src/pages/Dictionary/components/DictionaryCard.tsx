@@ -15,23 +15,29 @@ export default function DictionaryCard({ word, isFav, onToggleFavorite, onPlayAu
   return (
     <div 
       onClick={() => navigate(`/word/${word.id}`, { state: { from: 'dictionary' } })} 
-      className="bg-white rounded-2xl p-4 flex flex-col items-center text-center shadow-[0_2px_8px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_20px_rgb(0,0,0,0.08)] transition-all cursor-pointer border border-gray-100 h-full"
+      className="bg-surface rounded-2xl p-4 flex flex-col items-center text-center shadow-[0_2px_8px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_20px_rgb(0,0,0,0.08)] hover:border-brand/30 transition-all cursor-pointer border border-line h-full group"
     >
       <div className="flex justify-between items-start w-full mb-3">
-        <button onClick={(e) => onToggleFavorite(e, word.id)} className="text-gray-300 hover:text-[#A82B2B] transition-colors">
-          <Heart className="w-5 h-5" fill={isFav ? "#A82B2B" : "none"} color={isFav ? "#A82B2B" : "currentColor"} />
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleFavorite(e, word.id);
+          }}
+          className="text-line hover:text-brand transition-colors"
+        >
+          <Heart className="w-5 h-5" fill={isFav ? "var(--brand-primary)" : "none"} color={isFav ? "var(--brand-primary)" : "currentColor"} />
         </button>
-        <span className="bg-[#F3F4F6] text-gray-600 text-[10px] font-bold px-2 py-1 rounded">HSK {word.hskLevel}</span>
+        <span className="bg-line/50 text-sub text-[10px] font-bold px-2 py-1 rounded border border-line">HSK {word.hskLevel}</span>
       </div>
-      <h2 className={`${word.simplified.length > 2 ? 'text-4xl' : 'text-6xl'} font-medium text-[#1A1A1A] leading-none mb-3`}>
+      <h2 className={`${word.simplified.length > 2 ? 'text-4xl' : 'text-6xl'} font-medium text-main leading-none mb-3 group-hover:text-brand transition-colors`}>
         {word.simplified}
       </h2>
-      <p className="text-sm font-medium text-[#A82B2B] mb-2">{word.pinyin}</p>
-      <p className="text-xs text-gray-700 px-1 line-clamp-2 leading-relaxed min-h-[32px]">{word.meaning}</p>
+      <p className="text-sm font-medium text-brand mb-2">{word.pinyin}</p>
+      <p className="text-xs text-sub px-1 line-clamp-2 leading-relaxed min-h-[32px]">{word.meaning}</p>
       <div className="mt-auto pt-4 w-full flex justify-center">
         <button 
           onClick={(e) => { e.stopPropagation(); onPlayAudio(e, word.simplified); }} 
-          className="w-9 h-9 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full flex items-center justify-center transition-colors"
+          className="w-9 h-9 bg-app hover:bg-line text-sub hover:text-main rounded-full flex items-center justify-center transition-colors border border-line"
         >
           <Volume2 className="w-4 h-4" />
         </button>

@@ -1,13 +1,13 @@
 export default function LibraryBanner() {
   return (
-    <div className="bg-[#F8F9FA] rounded-[2rem] p-10 flex flex-col md:flex-row justify-between items-center mb-10 shadow-sm border border-gray-100 overflow-hidden">
+    <div className="bg-surface rounded-[2rem] p-10 flex flex-col md:flex-row justify-between items-center mb-10 shadow-sm border border-line overflow-hidden">
       <div className="max-w-md z-10 mb-8 md:mb-0">
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 tracking-tight">Bộ thẻ</h1>
-        <p className="text-gray-600 leading-relaxed text-sm md:text-base">
+        <h1 className="text-4xl md:text-5xl font-bold text-main mb-4 tracking-tight">Flashcards</h1>
+        <p className="text-sub leading-relaxed text-sm md:text-base">
           Học và ôn tập từ vựng bằng Flashcard với các bộ thẻ theo trình độ HSK, chủ đề hoặc tự tạo theo sở thích.
         </p>
       </div>
-      <div className="w-full md:w-1/2 rounded-2xl overflow-hidden shadow-sm">
+      <div className="w-full md:w-1/2 rounded-2xl overflow-hidden shadow-sm border border-line/50">
         <img 
           src="/images/chinese-flashcards.jpg" 
           alt="Study Desk Illustration" 

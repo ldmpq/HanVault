@@ -48,20 +48,20 @@ export default function Review() {
     restartSession();
   };
 
-  if (isLoading) return <div className="text-center py-20 text-gray-500 font-medium animate-pulse">Đang khởi tạo phiên học...</div>;
+  if (isLoading) return <div className="text-center py-20 text-sub font-medium animate-pulse">Đang khởi tạo phiên học...</div>;
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-32 animate-fade-in px-4 text-center">
         <AlertTriangle className="w-16 h-16 text-red-500 mb-6" />
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">Oops! Đã xảy ra lỗi</h2>
-        <p className="text-gray-600 mb-8 max-w-md">{error}</p>
-        <button onClick={() => navigate(`/deck/${deckId}`)} className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-8 py-3.5 rounded-xl font-bold transition-colors">
+        <h2 className="text-3xl font-bold text-main mb-4">Oops! Đã xảy ra lỗi</h2>
+        <p className="text-sub mb-8 max-w-md">{error}</p>
+        <button onClick={() => navigate(`/deck/${deckId}`)} className="bg-line/50 hover:bg-line text-main px-8 py-3.5 rounded-xl font-bold transition-colors">
           Quay lại Bộ thẻ
         </button>
       </div>
     );
   }
-  if (!deckId) return <div className="flex flex-col items-center justify-center py-32"><h2 className="text-3xl font-bold">Vui lòng chọn một bộ bài để ôn tập</h2></div>;
+  if (!deckId) return <div className="flex flex-col items-center justify-center py-32"><h2 className="text-3xl font-bold text-main">Vui lòng chọn một bộ bài để ôn tập</h2></div>;
 
   if (isFinished) {
     return (
@@ -83,7 +83,7 @@ export default function Review() {
   const displayMeaning = card.meanings?.[0]?.meaning || card.meaning || 'Đang cập nhật nghĩa...';
 
   return (
-    <div className="relative w-full min-h-[85vh] bg-[#FCFAF8] flex flex-col items-center py-10 px-4 font-sans animate-fade-in overflow-hidden">
+    <div className="relative w-full min-h-[85vh] bg-app text-main flex flex-col items-center py-10 px-4 font-sans animate-fade-in overflow-hidden transition-colors">
       
       <PauseOverlay isPaused={isPaused} setIsPaused={setIsPaused} />
 

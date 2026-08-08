@@ -18,16 +18,16 @@ export default function DashboardLayout() {
         { name: 'Flashcards', path: '/library' },
         { name: 'Học từ mới', path: '/courses' },
         { name: 'Ôn tập', path: '/review' },
-        { name: 'Kiểm tra', path: '/test' },
+        { name: 'Kiểm tra', path: '/quiz' },
       ]
     },
     { name: 'Thành tích', path: '/progress' },
   ];
 
   return (
-    <div className="min-h-screen bg-[#FCFAF8] font-sans flex flex-col">
+    <div className="min-h-screen bg-app font-sans flex flex-col text-main transition-colors">
       <header className="w-full flex items-center justify-between py-6 px-6 md:px-16 max-w-[1400px] mx-auto z-50 relative">
-        <Link to="/dashboard" className="text-2xl font-bold text-[#A82B2B] tracking-tight">
+        <Link to="/dashboard" className="text-2xl font-bold text-brand tracking-tight">
           HanVault
         </Link>
         
@@ -44,24 +44,24 @@ export default function DashboardLayout() {
                   <button 
                     className={`flex items-center gap-1 text-sm font-medium pb-2 border-b-2 transition-colors ${
                       isActive 
-                        ? 'text-[#A82B2B] border-[#A82B2B]' 
-                        : 'text-gray-500 border-transparent hover:text-gray-900'
+                        ? 'text-brand border-brand' 
+                        : 'text-sub border-transparent hover:text-main'
                     }`}
                   >
                     {item.name}
                     <ChevronDown className={`w-4 h-4 transition-transform duration-200 group-hover:rotate-180 ${
-                      isActive ? 'text-[#A82B2B]' : 'text-gray-400'
+                      isActive ? 'text-brand' : 'text-sub'
                     }`} />
                   </button>
 
                   <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 w-48 z-50">
-                    <div className="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.1)] border border-gray-100 py-2 flex flex-col overflow-hidden">
+                    <div className="bg-surface rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-line py-2 flex flex-col overflow-hidden">
                       {item.subItems.map((sub) => (
                         <Link
                           key={sub.name}
                           to={sub.path}
-                          className={`px-5 py-2.5 text-sm font-medium transition-colors hover:bg-red-50 hover:text-[#A82B2B] ${
-                            location.pathname.startsWith(sub.path) ? 'text-[#A82B2B] bg-red-50/50' : 'text-gray-600'
+                          className={`px-5 py-2.5 text-sm font-medium transition-colors hover:bg-brand/10 hover:text-brand ${
+                            location.pathname.startsWith(sub.path) ? 'text-brand bg-brand/10' : 'text-sub'
                           }`}
                         >
                           {sub.name}
@@ -78,8 +78,8 @@ export default function DashboardLayout() {
                 to={item.path}
                 className={`text-sm font-medium pb-2 border-b-2 transition-colors ${
                   isActive 
-                    ? 'text-[#A82B2B] border-[#A82B2B]' 
-                    : 'text-gray-500 border-transparent hover:text-gray-900'
+                    ? 'text-brand border-brand' 
+                    : 'text-sub border-transparent hover:text-main'
                 }`}
               >
                 {item.name}
@@ -91,11 +91,9 @@ export default function DashboardLayout() {
         {/* Right Actions & Mobile Hamburger Button */}
         <div className="flex items-center gap-4">
           <AvatarDropdown />
-          
-          {/* Nút bấm mở menu trên điện thoại */}
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 text-gray-700 hover:text-[#A82B2B] focus:outline-none"
+            className="md:hidden p-2 text-sub hover:text-brand focus:outline-none"
             aria-label="Toggle Menu"
           >
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -105,20 +103,20 @@ export default function DashboardLayout() {
 
       {/* 2. MOBILE NAVIGATION DRAWER */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-white border-b border-gray-200 px-6 py-4 flex flex-col gap-4 shadow-lg absolute top-20 left-0 w-full z-40 animate-fadeIn">
+        <div className="md:hidden bg-surface border-b border-line px-6 py-4 flex flex-col gap-4 shadow-lg absolute top-20 left-0 w-full z-40 animate-fadeIn">
           {navItems.map((item) => (
             <div key={item.name} className="flex flex-col gap-2">
               {item.subItems ? (
                 <>
-                  <span className="text-sm font-bold text-gray-900 pt-2">{item.name}</span>
-                  <div className="pl-4 flex flex-col gap-2 border-l-2 border-gray-100">
+                  <span className="text-sm font-bold text-main pt-2">{item.name}</span>
+                  <div className="pl-4 flex flex-col gap-2 border-l-2 border-line">
                     {item.subItems.map((sub) => (
                       <Link
                         key={sub.name}
                         to={sub.path}
-                        onClick={() => setIsMobileMenuOpen(false)} // Bấm xong tự đóng menu
+                        onClick={() => setIsMobileMenuOpen(false)}
                         className={`text-sm py-1 font-medium transition-colors ${
-                          location.pathname.startsWith(sub.path) ? 'text-[#A82B2B]' : 'text-gray-600'
+                          location.pathname.startsWith(sub.path) ? 'text-brand' : 'text-sub'
                         }`}
                       >
                         {sub.name}
@@ -131,7 +129,7 @@ export default function DashboardLayout() {
                   to={item.path}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={`text-sm font-semibold py-1 transition-colors ${
-                    location.pathname === item.path ? 'text-[#A82B2B]' : 'text-gray-700'
+                    location.pathname === item.path ? 'text-brand' : 'text-main'
                   }`}
                 >
                   {item.name}
@@ -148,14 +146,14 @@ export default function DashboardLayout() {
       </main>
 
       {/* Footer */}
-      <footer className="w-full border-t border-gray-200 mt-28 bg-white">
+      <footer className="w-full border-t border-line mt-28 bg-surface">
         <div className="max-w-[1400px] mx-auto px-6 md:px-16 py-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
           <div className="max-w-xs">
-            <div className="text-xl font-bold text-[#A82B2B] mb-4">HanVault</div>
-            <p className="text-sm text-gray-600 mb-6 leading-relaxed">
+            <div className="text-xl font-bold text-brand mb-4">HanVault</div>
+            <p className="text-sm text-sub mb-6 leading-relaxed">
               Calmly Master the Tongue. A premium learning environment for sophisticated Mandarin students.
             </p>
-            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">
+            <p className="text-[10px] text-sub uppercase font-bold tracking-widest">
               © 2026 HanVault. All rights reserved.
             </p>
           </div>

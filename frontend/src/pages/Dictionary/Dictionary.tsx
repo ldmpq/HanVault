@@ -19,11 +19,11 @@ export default function Dictionary() {
   } = useDictionary();
 
   return (
-    <div className="min-h-screen bg-[#FCFAF8] font-sans pb-24 animate-fade-in relative">
+    <div className="min-h-screen bg-app font-sans pb-24 animate-fade-in relative transition-colors">
       
       <div className="max-w-[800px] mx-auto pt-16 pb-8 px-6 text-center">
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 tracking-tight">Tra cứu từ vựng</h1>
-        <p className="text-gray-600 mb-8 max-w-xl mx-auto leading-relaxed">
+        <h1 className="text-4xl md:text-5xl font-bold text-main mb-4 tracking-tight">Tra cứu từ vựng</h1>
+        <p className="text-sub mb-8 max-w-xl mx-auto leading-relaxed">
           Tra cứu từ vựng tiếng Trung, tìm kiếm theo chữ Hán, pinyin hoặc nghĩa.
         </p>
 
@@ -42,12 +42,12 @@ export default function Dictionary() {
 
       <div className="max-w-[1200px] mx-auto px-6">
         {isLoading ? (
-          <div className="text-center py-20 text-gray-400 font-medium animate-pulse">Đang tải dữ liệu...</div>
+          <div className="text-center py-20 text-sub font-medium animate-pulse">Đang tải dữ liệu...</div>
         ) : words.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-gray-100 shadow-sm">
-            <DatabaseBackup className="w-16 h-16 text-gray-300 mb-4" />
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Không tìm thấy từ vựng</h3>
-            <p className="text-gray-500 text-sm">Thử thay đổi từ khóa hoặc bộ lọc của bạn.</p>
+          <div className="flex flex-col items-center justify-center py-20 bg-surface rounded-3xl border border-line shadow-sm">
+            <DatabaseBackup className="w-16 h-16 text-sub mb-4 opacity-50" />
+            <h3 className="text-xl font-bold text-main mb-2">Không tìm thấy từ vựng</h3>
+            <p className="text-sub text-sm">Thử thay đổi từ khóa hoặc bộ lọc của bạn.</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-5">

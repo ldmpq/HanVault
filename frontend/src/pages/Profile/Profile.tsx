@@ -12,8 +12,8 @@ export default function Profile() {
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-10 h-10 text-[#A82B2B] animate-spin mb-4" />
-        <p className="text-gray-500 font-medium">Đang tải thông tin hồ sơ...</p>
+        <Loader2 className="w-10 h-10 text-brand animate-spin mb-4" />
+        <p className="text-sub font-medium">Đang tải thông tin hồ sơ...</p>
       </div>
     );
   }
@@ -26,7 +26,7 @@ export default function Profile() {
   const dailyGoalMins = dashboard?.dailyGoal?.target || 30;
 
   return (
-    <div className="w-full max-w-[1200px] mx-auto animate-fade-in pb-12 px-4 md:px-8 mt-6">
+    <div className="w-full max-w-[1200px] mx-auto animate-fade-in pb-12 px-4 md:px-8 mt-6 text-main transition-colors">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
         {/* ================= CỘT TRÁI ================= */}

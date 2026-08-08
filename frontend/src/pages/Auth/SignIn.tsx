@@ -22,20 +22,20 @@ export default function SignIn() {
       quoteSub="(知人者智，自知者明)"
     >
       {error && (
-        <div className="w-full mb-5 p-3 bg-red-50 text-red-600 text-sm rounded-lg font-medium border border-red-100">
+        <div className="w-full mb-5 p-3 bg-brand/10 text-brand text-sm rounded-lg font-medium border border-brand/20">
           {error}
         </div>
       )}
 
       <form onSubmit={handleSignIn} className="space-y-4">
         <div>
-          <label className="block text-xs font-bold text-gray-700 mb-1.5">Email address</label>
+          <label className="block text-xs font-bold text-main mb-1.5">Email address</label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
-            className="w-full bg-gray-100/80 border-none rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-100 focus:bg-white transition-all placeholder:text-gray-400 text-gray-800 text-sm font-medium"
+            className="w-full bg-surface border border-line rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all placeholder:text-sub text-main text-sm font-medium"
             required
           />
         </div>
@@ -54,15 +54,15 @@ export default function SignIn() {
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="peer appearance-none w-4 h-4 border border-gray-300 rounded bg-white checked:bg-[#A82B2B] checked:border-[#A82B2B] cursor-pointer"
+                className="peer appearance-none w-4 h-4 border border-line rounded bg-surface checked:bg-brand checked:border-brand cursor-pointer"
               />
               <svg className="absolute w-2.5 h-2.5 text-white pointer-events-none opacity-0 peer-checked:opacity-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                 <polyline points="20 6 9 17 4 12"></polyline>
               </svg>
             </div>
-            <span className="text-xs font-medium text-gray-600 group-hover:text-gray-900">Remember me</span>
+            <span className="text-xs font-medium text-sub group-hover:text-main transition-colors">Remember me</span>
           </label>
-          <Link to="/forgot-password" className="text-xs font-bold text-[#A82B2B] hover:text-[#8b2323]">
+          <Link to="/forgot-password" className="text-xs font-bold text-brand hover:text-brand-hover">
             Forgot password?
           </Link>
         </div>
@@ -70,12 +70,11 @@ export default function SignIn() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-[#A82B2B] hover:bg-[#8b2323] text-white font-bold py-3 rounded-xl transition-all disabled:opacity-70 mt-2"
+          className="w-full bg-brand hover:bg-brand-hover text-white font-bold py-3 rounded-xl transition-all disabled:opacity-70 mt-2 shadow-sm"
         >
           {loading ? 'Logging in...' : 'Log In'}
         </button>
       </form>
-
     </AuthLayout>
   );
 }

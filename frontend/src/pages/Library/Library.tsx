@@ -22,7 +22,7 @@ export default function Library() {
   } = useLibrary();
 
   return (
-    <div className="animate-fade-in pb-20 w-full max-w-[1200px] mx-auto">
+    <div className="animate-fade-in pb-20 w-full max-w-[1200px] mx-auto text-main transition-colors">
       
       <LibraryBanner />
 

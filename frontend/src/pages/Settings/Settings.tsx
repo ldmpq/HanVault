@@ -15,12 +15,12 @@ export default function Settings() {
   } = useSettings();
 
   return (
-    <div className="w-full max-w-[1200px] mx-auto pb-24 px-4 md:px-8 pt-6 font-sans animate-fade-in bg-[#FCFAF8] min-h-screen">
+    <div className="w-full max-w-[1200px] mx-auto pb-24 px-4 md:px-8 pt-6 font-sans animate-fade-in bg-app text-main min-h-screen">
       
       {/* HEADER SECTION */}
       <div className="mb-10">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight mb-2">Cài đặt</h1>
-        <p className="text-gray-500 text-sm md:text-base">Quản lý trải nghiệm học tập và tùy chọn tài khoản của bạn.</p>
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">Cài đặt</h1>
+        <p className="text-sub text-sm md:text-base">Quản lý trải nghiệm học tập và tùy chọn tài khoản của bạn.</p>
       </div>
 
       {/* MAIN LAYOUT */}

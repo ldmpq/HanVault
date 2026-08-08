@@ -53,7 +53,6 @@ export default function DeckFormModal({ isOpen, onClose, onSuccess, deck }: Deck
     }
   }, [deck, isOpen]);
 
-  // Đóng picker khi click ra ngoài
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
@@ -87,9 +86,6 @@ export default function DeckFormModal({ isOpen, onClose, onSuccess, deck }: Deck
       onClose();
     } catch (error: any) {
       console.error('Lỗi chi tiết từ Server:', error.response?.data);
-      if (error.response?.data?.errors) {
-        console.table(error.response.data.errors);
-      }
       alert(`Lỗi: ${error.response?.data?.message || 'Không thể lưu bộ thẻ'}`);
     } finally {
       setIsLoading(false);
@@ -104,44 +100,39 @@ export default function DeckFormModal({ isOpen, onClose, onSuccess, deck }: Deck
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 animate-fade-in font-sans">
       
-      {/* Overlay tối nhẹ + Blur */}
       <div 
-        className="absolute inset-0 bg-gray-950/40 backdrop-blur-sm transition-opacity"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
-      {/* Modal Container */}
-      <div className="relative w-full max-w-[560px] bg-white rounded-[24px] shadow-[0_20px_50px_rgb(0,0,0,0.12)] border border-[#ECE7E3] p-8 md:p-10 z-10 overflow-visible max-h-[90vh] flex flex-col">
+      <div className="relative w-full max-w-[560px] bg-surface rounded-[24px] shadow-[0_20px_50px_rgb(0,0,0,0.12)] border border-line p-8 md:p-10 z-10 overflow-visible max-h-[90vh] flex flex-col">
         
-        {/* HEADER */}
-        <div className="flex items-start justify-between mb-8 pb-6 border-b border-[#ECE7E3] shrink-0">
+        <div className="flex items-start justify-between mb-8 pb-6 border-b border-line shrink-0">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-red-50 text-[#A82B2B] flex items-center justify-center shrink-0 border border-red-100/60 shadow-sm">
+            <div className="w-12 h-12 rounded-2xl bg-brand/10 text-brand flex items-center justify-center shrink-0 border border-brand/20 shadow-sm">
               <Sparkles className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900 tracking-tight">
+              <h2 className="text-xl font-bold text-main tracking-tight">
                 {isEditing ? 'Edit Deck' : 'Create New Deck'}
               </h2>
-              <p className="text-xs text-gray-500 mt-0.5">
+              <p className="text-xs text-sub mt-0.5">
                 Create a personalized vocabulary collection for your learning journey.
               </p>
             </div>
           </div>
           <button 
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition-colors"
+            className="w-8 h-8 rounded-full bg-line/50 hover:bg-line flex items-center justify-center text-sub hover:text-main transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* BODY */}
         <form onSubmit={handleSubmit} className="space-y-6 overflow-y-auto pr-1 custom-scrollbar flex-1">
           
-          {/* 1. DECK ICON */}
           <div className="relative" ref={pickerRef}>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-sub mb-2.5">
               Deck Icon
             </label>
             <div className="flex items-center gap-4">
@@ -149,17 +140,16 @@ export default function DeckFormModal({ isOpen, onClose, onSuccess, deck }: Deck
                 <button
                   type="button"
                   onClick={() => setShowIconPicker(!showIconPicker)}
-                  className="w-16 h-16 rounded-2xl bg-[#FCFAF8] border-2 border-[#ECE7E3] hover:border-[#A82B2B] flex items-center justify-center text-3xl shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-red-100"
+                  className="w-16 h-16 rounded-2xl bg-app border-2 border-line hover:border-brand flex items-center justify-center text-3xl shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-brand/20"
                 >
                   {icon}
                 </button>
                 
-                {/* Tích hợp emoji-picker-react chuẩn xác */}
                 {showIconPicker && (
-                  <div className="absolute top-20 left-0 z-50 shadow-2xl rounded-2xl overflow-hidden border border-[#ECE7E3] animate-fade-in">
+                  <div className="absolute top-20 left-0 z-50 shadow-2xl rounded-2xl overflow-hidden border border-line animate-fade-in">
                     <EmojiPicker 
                       onEmojiClick={handleEmojiClick}
-                      theme={Theme.LIGHT}
+                      theme={Theme.AUTO}
                       width={320}
                       height={380}
                       searchPlaceholder="Search emoji..."
@@ -168,15 +158,14 @@ export default function DeckFormModal({ isOpen, onClose, onSuccess, deck }: Deck
                 )}
               </div>
               <div>
-                <p className="text-sm font-bold text-gray-800">Choose an icon</p>
-                <p className="text-xs text-gray-500">Click to select an icon representation for your deck.</p>
+                <p className="text-sm font-bold text-main">Choose an icon</p>
+                <p className="text-xs text-sub">Click to select an icon representation for your deck.</p>
               </div>
             </div>
           </div>
 
-          {/* 2. DECK NAME */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-sub mb-2">
               Deck Name
             </label>
             <input
@@ -184,19 +173,18 @@ export default function DeckFormModal({ isOpen, onClose, onSuccess, deck }: Deck
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Business Chinese"
-              className="w-full bg-[#FCFAF8] border border-[#ECE7E3] rounded-2xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-red-100 focus:border-[#A82B2B] focus:bg-white transition-all placeholder:text-gray-400 text-gray-800 text-sm font-medium shadow-sm"
+              className="w-full bg-app border border-line rounded-2xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand focus:bg-surface transition-all placeholder:text-sub text-main text-sm font-medium shadow-sm"
               required
             />
-            <p className="text-[11px] text-gray-400 mt-1.5 ml-1">This name will be displayed in your library.</p>
+            <p className="text-[11px] text-sub mt-1.5 ml-1">This name will be displayed in your library.</p>
           </div>
 
-          {/* 3. DESCRIPTION */}
           <div>
             <div className="flex justify-between items-center mb-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-gray-400">
+              <label className="text-xs font-bold uppercase tracking-wider text-sub">
                 Description
               </label>
-              <span className="text-[11px] font-medium text-gray-400">
+              <span className="text-[11px] font-medium text-sub">
                 {200 - description.length} chars left
               </span>
             </div>
@@ -206,16 +194,15 @@ export default function DeckFormModal({ isOpen, onClose, onSuccess, deck }: Deck
               placeholder="Describe what this deck is about..."
               rows={3}
               maxLength={200}
-              className="w-full bg-[#FCFAF8] border border-[#ECE7E3] rounded-2xl p-4 focus:outline-none focus:ring-2 focus:ring-red-100 focus:border-[#A82B2B] focus:bg-white transition-all placeholder:text-gray-400 text-gray-800 text-sm font-medium shadow-sm resize-none"
+              className="w-full bg-app border border-line rounded-2xl p-4 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand focus:bg-surface transition-all placeholder:text-sub text-main text-sm font-medium shadow-sm resize-none"
             />
           </div>
 
-          {/* 4. HSK LEVEL (OPTIONAL) */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-sub mb-1">
               HSK Level (Optional)
             </label>
-            <p className="text-xs text-gray-500 mb-3">Useful if this deck follows a specific HSK curriculum.</p>
+            <p className="text-xs text-sub mb-3">Useful if this deck follows a specific HSK curriculum.</p>
             
             <div className="flex flex-wrap gap-2">
               {HSK_LEVELS.map((item) => {
@@ -227,8 +214,8 @@ export default function DeckFormModal({ isOpen, onClose, onSuccess, deck }: Deck
                     onClick={() => setHskLevel(item.value)}
                     className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
                       isSelected 
-                        ? 'bg-[#A82B2B] text-white border-[#A82B2B] shadow-sm shadow-red-900/10' 
-                        : 'bg-[#FCFAF8] text-gray-600 border-[#ECE7E3] hover:border-gray-300 hover:bg-gray-50'
+                        ? 'bg-brand text-white border-brand shadow-sm shadow-brand/10' 
+                        : 'bg-app text-sub border-line hover:border-brand/30 hover:text-main'
                     }`}
                   >
                     {item.label}
@@ -238,19 +225,18 @@ export default function DeckFormModal({ isOpen, onClose, onSuccess, deck }: Deck
             </div>
           </div>
 
-          {/* FOOTER ACTIONS */}
-          <div className="flex items-center justify-end gap-3 pt-6 border-t border-[#ECE7E3] mt-8 shrink-0">
+          <div className="flex items-center justify-end gap-3 pt-6 border-t border-line mt-8 shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-3 rounded-xl border border-[#ECE7E3] text-gray-600 font-bold text-sm hover:bg-gray-50 transition-colors"
+              className="px-6 py-3 rounded-xl border border-line text-sub font-bold text-sm hover:text-main hover:bg-line/50 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="px-6 py-3 rounded-xl bg-[#A82B2B] hover:bg-[#8b2323] text-white font-bold text-sm transition-all shadow-sm disabled:opacity-70 flex items-center gap-2"
+              className="px-6 py-3 rounded-xl bg-brand hover:bg-brand-hover text-white font-bold text-sm transition-all shadow-sm disabled:opacity-70 flex items-center gap-2"
             >
               {isLoading ? 'Saving...' : (isEditing ? 'Save Changes' : 'Create Deck')}
             </button>
