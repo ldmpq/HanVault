@@ -8,4 +8,4 @@ router.get('/recommended', getRecommendedQuizzes);
 router.get('/:quizId/questions', getQuizQuestions);
 router.post('/:quizId/submit', submitQuizResult);
 
-export default router;
+export default router; 
