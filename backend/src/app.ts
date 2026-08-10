@@ -4,13 +4,17 @@ import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
 
 import authRoutes from './modules/auth/auth.route';
+
 import vocabularyRoutes from './modules/vocabulary/vocabulary.route';
+import topicRoutes from './modules/topic/topic.route';
+
+import deckRoutes from './modules/deck/deck.route';
 import srsRoutes from './modules/srs/srs.route';
+
 import dashboardRoutes from './modules/dashboard/dashboard.route';
 import libraryRoutes from './modules/library/library.route';
-import deckRoutes from './modules/deck/deck.route';
-// import quizRoutes from './modules/quiz/quiz.route';
-import topicRoutes from './modules/topic/topic.route';
+
+import quizRoutes from './modules/quiz/quiz.route';
 import favoriteRoutes from './modules/favorite/favorite.route';
 
 const app: Application = express();
@@ -30,31 +34,23 @@ app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'OK', message: 'Han Vault API is running smoothly 🚀' });
 });
 
-// Auth routes
+// Auth
 app.use('/api/auth', authRoutes);
 
-// Dashboard routes
-app.use('/api/dashboard', dashboardRoutes);
-
-// Vocabulary routes
+// Vocabularies & Topics
 app.use('/api/vocabularies', vocabularyRoutes);
-
-// Library routes
-app.use('/api/library', libraryRoutes);
-
-// Deck routes
-app.use('/api/decks', deckRoutes);
-
-// SRS Study routes
-app.use('/api/srs', srsRoutes);
-
-// Quiz routes
-// app.use('/api/quiz', quizRoutes);
-
-// Topic routes
 app.use('/api/topics', topicRoutes);
 
-// Favorite routes
+// Decks & SRS
+app.use('/api/decks', deckRoutes);
+app.use('/api/srs', srsRoutes);
+
+// Dashboard & Library
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/library', libraryRoutes);
+
+// Quizzes & Favorites
+app.use('/api/quizzes', quizRoutes);
 app.use('/api/favorites', favoriteRoutes);
 
 // Global error handling middleware

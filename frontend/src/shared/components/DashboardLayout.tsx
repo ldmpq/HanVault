@@ -150,9 +150,6 @@ export default function DashboardLayout() {
         <div className="max-w-[1400px] mx-auto px-6 md:px-16 py-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
           <div className="max-w-xs">
             <div className="text-xl font-bold text-brand mb-4">HanVault</div>
-            <p className="text-sm text-sub mb-6 leading-relaxed">
-              Calmly Master the Tongue. A premium learning environment for sophisticated Mandarin students.
-            </p>
             <p className="text-[10px] text-sub uppercase font-bold tracking-widest">
               © 2026 HanVault. All rights reserved.
             </p>

@@ -7,6 +7,7 @@ export default function AccountSecuritySection() {
   const [editingPassword, setEditingPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
@@ -16,8 +17,13 @@ export default function AccountSecuritySection() {
       return;
     }
     
-    if (newPassword.length < 6) {
-      setMessage({ type: 'error', text: 'Mật khẩu mới phải có ít nhất 6 ký tự.' });
+    if (newPassword.length < 8) {
+      setMessage({ type: 'error', text: 'Mật khẩu mới phải có ít nhất 8 ký tự.' });
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setMessage({ type: 'error', text: 'Mật khẩu xác nhận không khớp. Vui lòng thử lại.' });
       return;
     }
 
@@ -34,6 +40,7 @@ export default function AccountSecuritySection() {
         setMessage({ type: 'success', text: response.data.message || 'Cập nhật mật khẩu thành công!' });
         setCurrentPassword('');
         setNewPassword('');
+        setConfirmPassword('');
         
         setTimeout(() => {
           setEditingPassword(false);
@@ -134,6 +141,16 @@ export default function AccountSecuritySection() {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Nhập mật khẩu mới" 
+                className="w-full bg-surface border border-line text-main rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all" 
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-sub uppercase tracking-wider">Xác nhận mật khẩu mới</label>
+              <input 
+                type="password" 
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Nhập lại mật khẩu mới" 
                 className="w-full bg-surface border border-line text-main rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all" 
               />
             </div>

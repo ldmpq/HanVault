@@ -2,18 +2,11 @@ import * as dotenv from 'dotenv';
 import readline from 'readline';
 import { db } from '../config/database';
 import {
-  vocabularies,
-  vocabularyMeanings,
-  exampleSentences,
-  exampleSentenceTranslations,
-  characters,
-  characterPronunciations,
-  characterComponents,
-  vocabularyCharacters,
-  topics,
-  vocabularyTopics
+  vocabularies, vocabularyMeanings, exampleSentences, exampleSentenceTranslations,
+  characters, characterPronunciations, characterComponents, vocabularyCharacters,
+  topics, vocabularyTopics, courses, lessons, decks, deckItems, quizzes, quizQuestions
 } from '../shared/schema';
-import { eq, isNull, isNotNull, and } from 'drizzle-orm';
+import { eq, isNull, isNotNull, and, asc, ilike, or } from 'drizzle-orm';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 dotenv.config();
@@ -28,7 +21,6 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const GITHUB_RAW_URL = 'https://raw.githubusercontent.com/drkameleon/complete-hsk-vocabulary/main/complete.json';
 const MAKEMEAHANZI_URL = 'https://raw.githubusercontent.com/skishore/makemeahanzi/master/dictionary.txt';
 
-// Danh sách 12 chủ đề cốt lõi bắt buộc (Chống AI bịa đặt chủ đề rác)
 const CORE_TOPICS = [
   "Giao tiếp & Giới thiệu", "Gia đình & Con người", "Thời gian & Số đếm",
   "Đời sống hằng ngày", "Ăn uống", "Học tập & Công việc",
@@ -36,11 +28,21 @@ const CORE_TOPICS = [
   "Công nghệ", "Thiên nhiên & Địa điểm", "Cảm xúc & Miêu tả"
 ];
 
-// Biến toàn cục để Caching (Tối ưu hóa Database)
+const hskConfigs = [
+  { level: 1, totalWords: 500, units: 5, lessons: 25, wordsPerLesson: 20 },
+  { level: 2, totalWords: 772, units: 8, lessons: 40, wordsPerLesson: 20 },
+  { level: 3, totalWords: 973, units: 10, lessons: 50, wordsPerLesson: 20 },
+  { level: 4, totalWords: 1000, units: 10, lessons: 50, wordsPerLesson: 20 },
+  { level: 5, totalWords: 1071, units: 11, lessons: 55, wordsPerLesson: 20 },
+  { level: 6, totalWords: 1140, units: 12, lessons: 60, wordsPerLesson: 20 },
+  { level: 7, totalWords: 3697, units: 37, lessons: 185, wordsPerLesson: 20 },
+  { level: 8, totalWords: 3697, units: 37, lessons: 185, wordsPerLesson: 20 },
+  { level: 9, totalWords: 3698, units: 37, lessons: 185, wordsPerLesson: 20 },
+];
+
 const vocabCache: { id: number; simplified: string }[] = [];
 const charIdCache = new Map<string, number>();
 
-// Hàm tiện ích tạo slug từ tiếng Việt (VD: "Đời sống" -> "doi-song")
 const generateSlug = (str: string) => {
   return str.toLowerCase()
     .normalize("NFD") 
@@ -55,6 +57,13 @@ const generateSlug = (str: string) => {
 // ============================================================================
 async function step1_cleanDatabase() {
   console.log('\n[PHASE 1] 🗑️ Đang xoá sạch dữ liệu cũ...');
+  // Xóa các bảng phụ thuộc trước để tránh lỗi Foreign Key
+  await db.delete(quizQuestions);
+  await db.delete(quizzes);
+  await db.delete(deckItems);
+  await db.delete(lessons);
+  await db.delete(courses);
+  await db.delete(decks);
   await db.delete(vocabularyTopics);
   await db.delete(topics); 
   await db.delete(exampleSentenceTranslations);
@@ -233,10 +242,10 @@ async function step5_enrichRadicals() {
 }
 
 // ============================================================================
-// PHASE 6: LÀM GIÀU TỪ VỰNG & PHÂN LOẠI CHỦ ĐỀ (AI MODULE MỞ RỘNG)
+// PHASE 6: LÀM GIÀU TỪ VỰNG & PHÂN LOẠI CHỦ ĐỀ
 // ============================================================================
 async function step6_enrichVocabulariesAndTopics() {
-  console.log('[PHASE 6] 🚀 Bắt đầu làm giàu từ vựng & phân loại chủ đề bằng AI (Có kiểm soát chặt chẽ)...');
+  console.log('[PHASE 6] 🚀 Bắt đầu làm giàu từ vựng & phân loại chủ đề bằng AI...');
   const allWords = await db.select({ id: vocabularies.id, hanzi: vocabularies.simplified, pinyin: vocabularies.pinyin }).from(vocabularies).where(isNull(vocabularies.sinoVietnamese));
 
   for (let i = 0; i < allWords.length; i += BATCH_SIZE) {
@@ -248,16 +257,14 @@ async function step6_enrichVocabulariesAndTopics() {
       YÊU CẦU:
       1. "ch": Câu ví dụ (TUYỆT ĐỐI KHÔNG chứa tiếng Anh/Pinyin/Latin).
       2. "en": Dịch câu ví dụ sang Tiếng Việt.
-      3. "tp": Mảng chứa 1-2 tên chủ đề phù hợp nhất.
-      BẮT BUỘC CHỈ ĐƯỢC CHỌN TỪ ĐÚNG DANH SÁCH 12 CHỦ ĐỀ SAU (Không tự tạo tên khác):
-      ["Giao tiếp & Giới thiệu", "Gia đình & Con người", "Thời gian & Số đếm", "Đời sống hằng ngày", "Ăn uống", "Học tập & Công việc", "Giao thông & Du lịch", "Mua sắm & Dịch vụ", "Giải trí & Sở thích", "Công nghệ", "Thiên nhiên & Địa điểm", "Cảm xúc & Miêu tả"]
+      3. "tp": Mảng chứa 1-2 tên chủ đề phù hợp nhất. Chọn từ danh sách: ${JSON.stringify(CORE_TOPICS)}
 
       Mẫu JSON:
         {
           "ID": {
             "vi": "Nghĩa Tiếng Việt",
             "sv": "Âm Hán Việt",
-            "tp": ["Giao tiếp & Giới thiệu", "Đời sống hằng ngày"],
+            "tp": ["Giao tiếp & Giới thiệu"],
             "ex": [ {"ch": "他做生意很诚实。", "py": "Tā zuò shēngyì hěn chéngshí.", "en": "Anh ấy kinh doanh rất thành thật."} ]
           }
         }
@@ -281,25 +288,13 @@ async function step6_enrichVocabulariesAndTopics() {
           const meaningRecord = await db.query.vocabularyMeanings.findFirst({ where: and(eq(vocabularyMeanings.vocabularyId, wordId), eq(vocabularyMeanings.languageCode, 'vi')) });
           if (meaningRecord && aiData.vi) await db.update(vocabularyMeanings).set({ meaning: aiData.vi }).where(eq(vocabularyMeanings.id, meaningRecord.id));
 
-          // Xử lý Liên kết Chủ Đề (Có bộ lọc loại bỏ chủ đề rác do AI tự sinh)
           if (aiData.tp && Array.isArray(aiData.tp)) {
             for (const rawName of aiData.tp) {
               const normalizedRawName = rawName.toLowerCase().trim();
-              
-              // Kiểm tra xem chủ đề AI trả về có khớp với danh sách gốc hay không
-              const validTopicName = CORE_TOPICS.find(core => 
-                core.toLowerCase() === normalizedRawName || 
-                normalizedRawName.includes(core.toLowerCase())
-              );
+              const validTopicName = CORE_TOPICS.find(core => core.toLowerCase() === normalizedRawName || normalizedRawName.includes(core.toLowerCase()));
+              if (!validTopicName) continue; 
 
-              if (!validTopicName) {
-                continue; // Bỏ qua nếu AI tự bịa chủ đề ngoài danh sách
-              }
-
-              let topicRecord = await db.query.topics.findFirst({
-                where: eq(topics.name, validTopicName)
-              });
-
+              let topicRecord = await db.query.topics.findFirst({ where: eq(topics.name, validTopicName) });
               if (!topicRecord) {
                 try {
                   const slug = generateSlug(validTopicName);
@@ -309,7 +304,6 @@ async function step6_enrichVocabulariesAndTopics() {
                   topicRecord = await db.query.topics.findFirst({ where: eq(topics.name, validTopicName) });
                 }
               }
-
               if (topicRecord) {
                 await db.insert(vocabularyTopics).values({ vocabularyId: wordId, topicId: topicRecord.id }).onConflictDoNothing();
               }
@@ -333,7 +327,163 @@ async function step6_enrichVocabulariesAndTopics() {
     }
     await sleep(DELAY_MS);
   }
-  console.log(`🎉 Làm giàu toàn diện từ vựng hoàn tất.`);
+  console.log(`🎉 Làm giàu toàn diện từ vựng hoàn tất.\n`);
+}
+
+// ============================================================================
+// PHASE 7: CHIA BỘ THẺ & TẠO KHÓA HỌC HSK
+// ============================================================================
+async function step7_seedHskCourses() {
+  console.log('[PHASE 7] 🚀 Bắt đầu quá trình chia bộ thẻ và tạo khóa học HSK...');
+  for (const config of hskConfigs) {
+    const vocabs = await db.select().from(vocabularies)
+      .where(eq(vocabularies.hskLevel, config.level))
+      .orderBy(asc(vocabularies.id));
+
+    if (vocabs.length === 0) continue;
+
+    const [newCourse] = await db.insert(courses).values({
+      name: `HSK ${config.level} Standard Course`,
+      description: `Khóa học HSK ${config.level} tiêu chuẩn bao gồm ${vocabs.length} từ vựng, được chia thành ${config.units} Units và ${config.lessons} Lessons.`,
+    }).returning();
+
+    let vocabIndex = 0;
+    let globalLessonIndex = 1;
+    const lessonsPerUnit = config.lessons / config.units;
+
+    for (let u = 1; u <= config.units; u++) {
+      for (let l = 1; l <= lessonsPerUnit; l++) {
+        const chunk = vocabs.slice(vocabIndex, vocabIndex + config.wordsPerLesson);
+        if (chunk.length === 0) break;
+
+        const lessonTitle = `Unit ${u} - Lesson ${l}`;
+        
+        const [newDeck] = await db.insert(decks).values({
+          name: `HSK ${config.level} - ${lessonTitle}`,
+          description: `Bộ thẻ từ vựng cho ${lessonTitle} thuộc HSK ${config.level}.`,
+          hskLevel: config.level,
+          isSystem: true, 
+          isPublic: true,
+        }).returning();
+
+        const deckItemsData = chunk.map((v, idx) => ({
+          deckId: newDeck.id,
+          vocabularyId: v.id,
+          displayOrder: idx,
+        }));
+        await db.insert(deckItems).values(deckItemsData);
+
+        await db.insert(lessons).values({
+          courseId: newCourse.id,
+          title: lessonTitle,
+          orderIndex: globalLessonIndex,
+          deckId: newDeck.id,
+        });
+
+        vocabIndex += config.wordsPerLesson;
+        globalLessonIndex++;
+      }
+    }
+    console.log(`✅ Đã hoàn tất HSK ${config.level}: Tạo ${globalLessonIndex - 1} bộ thẻ.`);
+  }
+  console.log('🎉 Khởi tạo khóa học thành công.\n');
+}
+
+// ============================================================================
+// PHASE 8: TẠO DỮ LIỆU QUIZ MẪU
+// ============================================================================
+async function step8_seedQuizzes() {
+  console.log('[PHASE 8] ⏳ Đang tạo dữ liệu mẫu cho Quiz...');
+  try {
+    const insertedVocabs = await db.insert(vocabularies).values([
+      { simplified: '你好', pinyin: 'nǐ hǎo', hskLevel: 1 },
+      { simplified: '谢谢', pinyin: 'xiè xie', hskLevel: 1 },
+      { simplified: '明白', pinyin: 'míng bai', hskLevel: 2 },
+      { simplified: '因为', pinyin: 'yīn wèi', hskLevel: 2 },
+      { simplified: '虽然', pinyin: 'suī rán', hskLevel: 3 },
+    ]).returning({ id: vocabularies.id });
+
+    const insertedQuizzes = await db.insert(quizzes).values([
+      { title: 'HSK 1: Chào hỏi cơ bản', hskLevel: 1, quizType: 'hsk_mock' },
+      { title: 'HSK 1: Đánh giá đầu vào', hskLevel: 1, quizType: 'placement' },
+      { title: 'HSK 2: Động từ & Trạng từ', hskLevel: 2, quizType: 'hsk_mock' },
+      { title: 'HSK 2: Cấu trúc nguyên nhân', hskLevel: 2, quizType: 'custom' },
+      { title: 'HSK 3: Ngữ pháp quan trọng', hskLevel: 3, quizType: 'hsk_mock' },
+    ]).returning({ id: quizzes.id });
+
+    const questionsData = [
+      { quizId: insertedQuizzes[0].id, vocabularyId: insertedVocabs[0].id, questionType: 'multiple_choice' as const, options: ['Tạm biệt', 'Xin chào', 'Cảm ơn', 'Xin lỗi'], correctAnswer: 'Xin chào' },
+      { quizId: insertedQuizzes[0].id, vocabularyId: insertedVocabs[1].id, questionType: 'multiple_choice' as const, options: ['Không có gì', 'Tạm biệt', 'Cảm ơn', 'Ngày mai'], correctAnswer: 'Cảm ơn' },
+      { quizId: insertedQuizzes[2].id, vocabularyId: insertedVocabs[2].id, questionType: 'multiple_choice' as const, options: ['Hiểu / Rõ ràng', 'Quên', 'Sáng sủa', 'Thông minh'], correctAnswer: 'Hiểu / Rõ ràng' },
+      { quizId: insertedQuizzes[3].id, vocabularyId: insertedVocabs[3].id, questionType: 'multiple_choice' as const, options: ['Bởi vì', 'Cho nên', 'Nhưng mà', 'Tuy nhiên'], correctAnswer: 'Bởi vì' },
+      { quizId: insertedQuizzes[4].id, vocabularyId: insertedVocabs[4].id, questionType: 'multiple_choice' as const, options: ['Đột nhiên', 'Mặc dù', 'Đương nhiên', 'Thỉnh thoảng'], correctAnswer: 'Mặc dù' }
+    ];
+
+    await db.insert(quizQuestions).values(questionsData);
+    console.log('✅ Chèn dữ liệu Quiz mẫu thành công.\n');
+  } catch (error) {
+    console.error('❌ Lỗi khi Seed Quiz:', error);
+  }
+}
+
+// ============================================================================
+// PHASE 9: SỬA LỖI NGHĨA TỪ VỰNG (AI SYNC)
+// ============================================================================
+async function step9_syncAiTranslations() {
+  console.log('[PHASE 9] 🔍 BẮT ĐẦU CHIẾN DỊCH: ĐỒNG BỘ & SỬA LỖI NGHĨA TỪ VỰNG...');
+  try {
+    const pendingMeanings = await db
+      .select({
+        meaningId: vocabularyMeanings.id,
+        word: vocabularies.simplified,
+        pinyin: vocabularies.pinyin
+      })
+      .from(vocabularyMeanings)
+      .innerJoin(vocabularies, eq(vocabularyMeanings.vocabularyId, vocabularies.id))
+      .where(
+        or(
+          ilike(vocabularyMeanings.meaning, '%Đang chờ%'),
+          eq(vocabularyMeanings.meaning, ''),
+          ilike(vocabularyMeanings.meaning, '%chưa có nghĩa%')
+        )
+      );
+
+    if (pendingMeanings.length === 0) return console.log('✅ Không có từ vựng nào cần dịch lại.\n');
+    console.log(`⚠️ Tìm thấy ${pendingMeanings.length} từ vựng cần cập nhật...`);
+
+    let successCount = 0;
+    for (let i = 0; i < pendingMeanings.length; i += BATCH_SIZE) {
+      const batch = pendingMeanings.slice(i, i + BATCH_SIZE);
+      const promptData = batch.map((m) => `ID: ${m.meaningId} | Word: ${m.word} (${m.pinyin})`).join('\n');
+
+      const prompt = `Dịch nghĩa tiếng Việt định dạng JSON. KEY=ID, VALUE=Nghĩa Tiếng Việt. Mẫu: {"101": "Xin chào"}\nDữ liệu:\n${promptData}`;
+
+      let retries = 3;
+      while (retries > 0) {
+        try {
+          const result = await model.generateContent(prompt);
+          let text = result.response.text().replace(/```json|```/gi, '').trim();
+          const dataObj = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1));
+
+          await Promise.all(Object.keys(dataObj).map(async (idStr) => {
+            const aiTranslation = dataObj[idStr];
+            if (aiTranslation) {
+              await db.update(vocabularyMeanings).set({ meaning: aiTranslation }).where(eq(vocabularyMeanings.id, parseInt(idStr)));
+              successCount++;
+            }
+          }));
+          break; 
+        } catch (err) {
+          retries--;
+          if (retries > 0) await sleep(DELAY_MS);
+        }
+      }
+      await sleep(DELAY_MS);
+    }
+    console.log(`🎉 Cập nhật thành công ${successCount} từ vựng.\n`);
+  } catch (error) {
+    console.error('💥 Lỗi khi chạy Sync AI:', error);
+  }
 }
 
 // ============================================================================
@@ -355,6 +505,9 @@ async function initDatabase() {
         await step4_linkVocabularyCharacters();
         await step5_enrichRadicals();
         await step6_enrichVocabulariesAndTopics();
+        await step7_seedHskCourses();
+        await step8_seedQuizzes();
+        await step9_syncAiTranslations();
         console.log('\n🎉 HỆ THỐNG ĐÃ ĐƯỢC KHỞI TẠO VÀ LÀM GIÀU DỮ LIỆU THÀNH CÔNG TỪ A-Z!');
       } catch (error) {
         console.error('\n❌ Lỗi Pipeline:', error);

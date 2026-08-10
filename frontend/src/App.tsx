@@ -1,11 +1,11 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useSettings } from './pages/Settings/hooks/useSettings';
 
-import Landing from './pages/Landing';
+import Landing from './pages/Landing/Landing';
 
 import SignIn from './pages/Auth/SignIn';
 import Register from './pages/Auth/Register';
-// import ForgotPassword from './pages/ForgotPassword';
+import ForgotPassword from './pages/Auth/ForgotPassword';
 import ProtectedRoute from './shared/router/ProtectedRoute';
 
 import DashboardLayout from './shared/components/DashboardLayout';
@@ -17,13 +17,13 @@ import Library from './pages/Library/Library';
 import WordDetail from './pages/WordDetail/WordDetail';
 import DeckDetail from './pages/DeckDetail/DeckDetail';
 import Review from './pages/Review/Review';
-// import Quiz from './pages/Quiz/Quiz';
+import Quiz from './pages/Quiz/Quiz';
 import Progress from './pages/Progress/Progress';
 import Profile from './pages/Profile/Profile';
 import Settings from './pages/Settings/Settings';
-import NotFound from './shared/components/NotFound';
+import NotFound from './pages/NotFound';
 
-import ComingSoon from './pages/CommingSoon';
+import ComingSoon from './pages/ComingSoon';
 
 function App() {
   useSettings();
@@ -34,7 +34,7 @@ function App() {
         <Route path="/login" element={<SignIn />} />
         <Route path="/register" element={<Register />} />
         {/* Sẽ cập nhật sau (1) */}
-        <Route path="/forgot-password" element={<ComingSoon />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
 
         <Route
           element={
@@ -45,16 +45,15 @@ function App() {
         >
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dictionary" element={<Dictionary />} />
+          <Route path="/translate" element={<ComingSoon />} />
           <Route path="/library" element={<Library />} />
           <Route path="/word/:id" element={<WordDetail/>} />
           <Route path="/deck/:deckId" element={<DeckDetail />} />
           <Route path="/review" element={<Review />} />
           <Route path="/review/:deckId" element={<Review />} />
-          {/* Sẽ cập nhật sau (3) */}
-          <Route path="/quiz" element={<ComingSoon />} />
-          <Route path="/progress" element={<Progress />} />
+          <Route path="/quiz" element={<Quiz />} />
           <Route path="/courses" element={<ComingSoon />} />
-          <Route path="/translate" element={<ComingSoon />} />
+          <Route path="/progress" element={<Progress />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
