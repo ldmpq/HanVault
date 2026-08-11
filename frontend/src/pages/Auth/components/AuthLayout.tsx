@@ -29,12 +29,21 @@ export default function AuthLayout({ children, title, subtitle, activeTab, quote
             <h1 className="text-4xl font-bold text-main mb-2 tracking-tight">{title}</h1>
             <p className="text-sub mb-8 text-[15px] font-medium">{subtitle}</p>
 
-            <div className="flex bg-surface p-1.5 rounded-xl w-full mb-8 border border-line">
+            {/* ================= NÚT TAB ================= */}
+            <div className="relative flex bg-surface p-1.5 rounded-xl w-full mb-8 border border-line">
+
+              <div className="absolute left-1.5 right-1.5 top-1.5 bottom-1.5 pointer-events-none">
+                <div 
+                  className={`w-1/2 h-full bg-brand rounded-lg shadow-sm transition-transform duration-300 ease-out ${
+                    activeTab === 'register' ? 'translate-x-full' : 'translate-x-0'
+                  }`} 
+                />
+              </div>
               <button
                 type="button"
                 onClick={() => navigate('/login')}
-                className={`w-1/2 py-2.5 text-sm font-bold rounded-lg transition-all duration-300 ${
-                  activeTab === 'login' ? 'bg-app shadow-sm text-brand' : 'text-sub hover:text-main'
+                className={`relative z-10 w-1/2 py-2.5 text-sm font-bold rounded-lg transition-colors duration-300 ${
+                  activeTab === 'login' ? 'text-white' : 'text-sub hover:text-main'
                 }`}
               >
                 Đăng nhập
@@ -42,8 +51,8 @@ export default function AuthLayout({ children, title, subtitle, activeTab, quote
               <button
                 type="button"
                 onClick={() => navigate('/register')}
-                className={`w-1/2 py-2.5 text-sm font-bold rounded-lg transition-all duration-300 ${
-                  activeTab === 'register' ? 'bg-app shadow-sm text-brand' : 'text-sub hover:text-main'
+                className={`relative z-10 w-1/2 py-2.5 text-sm font-bold rounded-lg transition-colors duration-300 ${
+                  activeTab === 'register' ? 'text-white' : 'text-sub hover:text-main'
                 }`}
               >
                 Đăng ký
@@ -56,7 +65,7 @@ export default function AuthLayout({ children, title, subtitle, activeTab, quote
           </div>
         </div>
 
-        {/* ================= PHẢI: VISUAL ARTWORK  ================= */}
+        {/* ================= PHẢI: VISUAL ARTWORK ================= */}
         <div className="hidden lg:flex w-1/2 h-full bg-surface relative flex-col justify-center items-center overflow-hidden">
           
           <div 
@@ -67,19 +76,34 @@ export default function AuthLayout({ children, title, subtitle, activeTab, quote
             }}
           >
             <div className="w-full max-w-[420px] relative h-full">
-              <div className="absolute inset-x-0 top-0 animate-scroll-vertical">
-                <div className="flex flex-col gap-8 pb-8">
-                  <ArtworkCard title="Welcome to HanVault" imageSrc="/images/zen01.jpg" />
-                  <ArtworkCard title="Master Vocabulary" imageSrc="/images/zen02.jpg" />
-                  <ArtworkCard title="Track Your Progress" imageSrc="/images/zen03.jpg" />
-                </div>
-                <div className="flex flex-col gap-8 pb-8">
-                  <ArtworkCard title="Welcome to HanVault" imageSrc="/images/zen01.jpg" />
-                  <ArtworkCard title="Master Vocabulary" imageSrc="/images/zen02.jpg" />
-                  <ArtworkCard title="Track Your Progress" imageSrc="/images/zen03.jpg" />
-                </div>
-              </div>
+            <div className="absolute inset-x-0 top-0 animate-scroll-vertical" style={{ animationDuration: '70s' }}>
+              {(() => {
+                const artworks = [
+                  { title: "A Calm Space to Learn", imageSrc: "/images/zen01.jpg" },
+                  { title: "Learn at Your Own Pace", imageSrc: "/images/zen02.jpg" },
+                  { title: "Enjoy the Journey", imageSrc: "/images/zen03.jpg" },
+                  { title: "Discover Chinese Culture", imageSrc: "/images/zen04.jpg" },
+                  { title: "Grow with Confidence", imageSrc: "/images/zen05.jpg" },
+                ];
+
+                return (
+                  <>
+                    <div className="flex flex-col gap-8 pb-8">
+                      {artworks.map((art, i) => (
+                        <ArtworkCard key={`main-${i}`} title={art.title} imageSrc={art.imageSrc} />
+                      ))}
+                    </div>
+                    <div className="flex flex-col gap-8 pb-8" aria-hidden="true">
+                      {artworks.map((art, i) => (
+                        <ArtworkCard key={`clone-${i}`} title={art.title} imageSrc={art.imageSrc} />
+                      ))}
+                    </div>
+                  </>
+                );
+              })()}
+
             </div>
+          </div>
           </div>
 
           <div key={quoteMain} className="absolute bottom-12 left-12 right-12 z-20 animate-slide-fade-up">
