@@ -6,6 +6,8 @@ interface User {
   displayName?: string;
   email: string;
   avatar?: string;
+  targetHskLevel: any;
+  currentHskLevel: any;
 }
 
 interface AuthState {

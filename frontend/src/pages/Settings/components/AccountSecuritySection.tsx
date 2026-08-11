@@ -1,15 +1,34 @@
 import { useState } from 'react';
-import { Mail, Lock, Shield, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Mail, Lock, Shield, Loader2, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import axiosClient from '../../../shared/lib/axiosClient';
+import { useAuthStore } from '../../../shared/store/authStore';
 
 export default function AccountSecuritySection() {
+  const user = useAuthStore((state) => state.user);
+
   const [editingEmail, setEditingEmail] = useState(false);
+  const [showEmail, setShowEmail] = useState(false);
+  
   const [editingPassword, setEditingPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+
+  const getMaskedEmail = (email?: string) => {
+    if (!email) return 'Chưa cập nhật email';
+    const [namePart, domainPart] = email.split('@');
+    if (!domainPart || namePart.length <= 2) return email;
+    
+    const firstChar = namePart.charAt(0);
+    const lastChar = namePart.charAt(namePart.length - 1);
+    const maskedName = `${firstChar}***${lastChar}`;
+    
+    return `${maskedName}@${domainPart}`;
+  };
+
+  const displayEmail = showEmail ? user?.email : getMaskedEmail(user?.email);
 
   const handleUpdatePassword = async () => {
     if (!currentPassword || !newPassword) {
@@ -62,7 +81,7 @@ export default function AccountSecuritySection() {
     <div className="bg-surface rounded-[24px] p-8 shadow-[0_4px_20px_rgb(0,0,0,0.02)] border border-line space-y-6">
       <h2 className="text-lg font-bold text-main mb-2">Cài đặt bảo mật</h2>
 
-      {/* Email Address */}
+      {/* ================= EMAIL ADDRESS ================= */}
       <div className="py-3 border-b border-line">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -71,7 +90,18 @@ export default function AccountSecuritySection() {
             </div>
             <div>
               <h3 className="text-sm font-bold text-main">Địa chỉ Email</h3>
-              <p className="text-xs text-sub">user@example.com</p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <p className="text-xs font-medium text-sub">{displayEmail}</p>
+                {user?.email && (
+                  <button 
+                    onClick={() => setShowEmail(!showEmail)} 
+                    className="text-sub hover:text-main transition-colors"
+                    title={showEmail ? "Ẩn Email" : "Hiển thị Email"}
+                  >
+                    {showEmail ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
           <button 
@@ -81,15 +111,22 @@ export default function AccountSecuritySection() {
             {editingEmail ? 'Cancel' : 'Update'}
           </button>
         </div>
+        
         {editingEmail && (
           <div className="mt-4 flex gap-2 animate-fade-in">
-            <input type="email" placeholder="New email address" className="flex-1 bg-app border border-line rounded-xl px-4 py-2 text-sm text-main focus:outline-none focus:border-brand" />
-            <button className="bg-brand hover:bg-brand-hover text-white px-4 py-2 rounded-xl text-sm font-bold transition-colors">Save</button>
+            <input 
+              type="email" 
+              placeholder="Nhập địa chỉ email mới" 
+              className="flex-1 bg-app border border-line rounded-xl px-4 py-2 text-sm text-main focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all" 
+            />
+            <button className="bg-brand hover:bg-brand-hover text-white px-5 py-2 rounded-xl text-sm font-bold transition-colors shadow-sm">
+              Gửi mã xác nhận
+            </button>
           </div>
         )}
       </div>
 
-      {/* Password Item */}
+      {/* ================= PASSWORD UPDATE ================= */}
       <div className="py-3 border-b border-line">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -98,7 +135,7 @@ export default function AccountSecuritySection() {
             </div>
             <div>
               <h3 className="text-sm font-bold text-main">Password</h3>
-              <p className="text-xs text-sub tracking-widest">••••••••••••</p>
+              <p className="text-xs text-sub tracking-widest mt-0.5">••••••••••••</p>
             </div>
           </div>
           <button 
@@ -140,7 +177,7 @@ export default function AccountSecuritySection() {
                 type="password" 
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Nhập mật khẩu mới" 
+                placeholder="Nhập mật khẩu mới (ít nhất 8 ký tự)" 
                 className="w-full bg-surface border border-line text-main rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all" 
               />
             </div>
@@ -157,7 +194,7 @@ export default function AccountSecuritySection() {
             <button 
               onClick={handleUpdatePassword}
               disabled={isLoading}
-              className="bg-brand hover:bg-brand-hover text-white px-5 py-2.5 mt-2 rounded-xl text-sm font-bold self-end flex items-center gap-2 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+              className="bg-brand hover:bg-brand-hover text-white px-5 py-2.5 mt-2 rounded-xl text-sm font-bold self-end flex items-center gap-2 transition-colors disabled:opacity-70 disabled:cursor-not-allowed shadow-sm"
             >
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Lưu mật khẩu'}
             </button>
@@ -165,7 +202,7 @@ export default function AccountSecuritySection() {
         )}
       </div>
 
-      {/* 2FA */}
+      {/* ================= 2FA (COMING SOON) ================= */}
       <div className="pt-2 space-y-3 opacity-60">
         <div className="flex items-center justify-between py-2">
           <div className="flex items-center gap-3">
@@ -174,10 +211,10 @@ export default function AccountSecuritySection() {
             </div>
             <div>
               <h3 className="text-sm font-bold text-main">Xác thực hai yếu tố (2FA)</h3>
-              <p className="text-xs text-sub">Tăng cường bảo mật cho tài khoản của bạn</p>
+              <p className="text-xs text-sub mt-0.5">Tăng cường bảo mật cho tài khoản của bạn</p>
             </div>
           </div>
-          <span className="text-xs font-bold text-sub bg-line px-3 py-1.5 rounded-lg">Soon</span>
+          <span className="text-[10px] font-bold text-sub uppercase tracking-wider bg-line px-3 py-1.5 rounded-lg">Soon</span>
         </div>
       </div>
     </div>

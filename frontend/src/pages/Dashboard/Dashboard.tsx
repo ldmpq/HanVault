@@ -10,13 +10,13 @@ import CurrentCourseWidget from './components/CurrentCourseWidget';
 export default function Dashboard() {
   const navigate = useNavigate();
   const greeting = useGreeting();
-  const { data, isLoading, error } = useDashboard();
+  const { data, isLoading, error, refetch } = useDashboard();
 
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
         <Loader2 className="w-10 h-10 text-brand animate-spin mb-4" />
-        <p className="text-sub font-medium">Đang tải dữ liệu từ Vault...</p>
+        <p className="text-sub font-medium">Đang tải dữ liệu ...</p>
       </div>
     );
   }
@@ -29,6 +29,20 @@ export default function Dashboard() {
     );
   }
 
+  const weeklyActivity = [false, false, false, false, false, false, false];
+  const currentDayIndex = (new Date().getDay() + 6) % 7; // 0 (T2) -> 6 (CN)
+  
+  if (data.weeklyProgress && data.weeklyProgress.length > 0) {
+    const todayDataIndex = data.weeklyProgress.length - 1; 
+
+    for (let i = 0; i <= currentDayIndex; i++) {
+      const offset = currentDayIndex - i; 
+      const activityLevel = data.weeklyProgress[todayDataIndex - offset];
+
+      weeklyActivity[i] = activityLevel > 0;
+    }
+  }
+
   return (
     <div className="w-full max-w-[1200px] mx-auto animate-fade-in pb-12">
       
@@ -37,6 +51,7 @@ export default function Dashboard() {
         userName={data.userName}
         dailyGoal={data.dailyGoal}
         streak={data.streak}
+        weeklyActivity={weeklyActivity}
         onContinue={() => navigate('/review')}
       />
 
@@ -44,6 +59,7 @@ export default function Dashboard() {
         <ReviewWidget 
           flashcard={data.flashcard}
           onStartReview={() => navigate('/review')}
+          onReload={refetch}
         />
 
         <CurrentCourseWidget 

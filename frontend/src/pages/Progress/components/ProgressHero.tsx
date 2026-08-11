@@ -1,14 +1,19 @@
 import type { ProgressData } from '../types';
+import { useAuthStore } from '../../../shared/store/authStore';
 
 interface ProgressHeroProps {
   data?: ProgressData['learning'];
 }
 
 export default function ProgressHero({ data }: ProgressHeroProps) {
+  const user = useAuthStore(state => state.user);
   const radius = 40;
   const circumference = 2 * Math.PI * radius;
   const progress = data?.overallProgress || 0;
   const offset = circumference - (circumference * (progress / 100));
+
+  const currentHskDisplay = user?.currentHskLevel ? `HSK ${user.currentHskLevel}` : 'Beginner';
+  const targetHskDisplay = user?.targetHskLevel ? `HSK ${user.targetHskLevel}` : '--';
 
   return (
     <div className="bg-surface rounded-[24px] p-8 md:p-10 shadow-sm border border-line flex flex-col md:flex-row items-center justify-between gap-10 h-full">
@@ -16,12 +21,12 @@ export default function ProgressHero({ data }: ProgressHeroProps) {
         <div className="flex items-center gap-8 mb-8">
           <div className="flex flex-col">
             <span className="text-[10px] font-bold text-sub uppercase tracking-widest mb-1.5">Current</span>
-            <span className="text-3xl font-bold text-brand">{data?.currentLevel || '--'}</span>
+            <span className="text-3xl font-bold text-brand">{currentHskDisplay}</span>
           </div>
           <div className="w-px h-10 bg-line"></div>
           <div className="flex flex-col">
             <span className="text-[10px] font-bold text-sub uppercase tracking-widest mb-1.5">Target</span>
-            <span className="text-3xl font-bold text-main">{data?.targetLevel || '--'}</span>
+            <span className="text-3xl font-bold text-main">{targetHskDisplay}</span>
           </div>
         </div>
         <div>

@@ -74,11 +74,6 @@ export default function AvatarDropdown() {
               </div>
               <div className="overflow-hidden flex-1">
                 <p className="text-base font-bold text-main truncate group-hover:text-brand transition-colors">{displayUserName}</p>
-                {user?.email ? (
-                  <p className="text-xs font-medium text-sub truncate">{user?.email}</p>
-                ) : (
-                  <p className="text-[11px] font-medium text-sub uppercase tracking-wider mt-0.5">Thành viên HanVault</p>
-                )}
               </div>
             </div>
 

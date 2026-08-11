@@ -3,15 +3,15 @@ import { GraduationCap, Flame } from 'lucide-react';
 interface ProfileUserCardProps {
   user: any;
   userName: string;
-  currentHsk: string;
-  targetHsk: string;
   mastery: number;
   streak: number;
 }
 
 export default function ProfileUserCard({
-  user, userName, currentHsk, targetHsk, mastery, streak
+  user, userName, mastery, streak
 }: ProfileUserCardProps) {
+  const currentHskDisplay = user?.currentHskLevel ? `HSK ${user.currentHskLevel}` : 'Beginner';
+  const targetHskDisplay = user?.targetHskLevel ? `HSK ${user.targetHskLevel}` : '--';
   return (
     <div className="bg-surface rounded-[2rem] p-8 shadow-sm border border-line flex flex-col items-center">
       <div className="relative mb-4">
@@ -27,11 +27,11 @@ export default function ProfileUserCard({
       <div className="flex w-full gap-4 mb-8">
         <div className="flex-1 bg-app rounded-2xl p-4 flex flex-col items-center justify-center border border-line">
           <span className="text-[10px] font-bold text-sub uppercase tracking-widest mb-1">Current</span>
-          <span className="text-lg font-bold text-brand">{currentHsk}</span>
+          <span className="text-lg font-bold text-brand">{currentHskDisplay}</span>
         </div>
         <div className="flex-1 bg-app rounded-2xl p-4 flex flex-col items-center justify-center border border-line">
           <span className="text-[10px] font-bold text-sub uppercase tracking-widest mb-1">Target</span>
-          <span className="text-lg font-bold text-main">{targetHsk}</span>
+          <span className="text-lg font-bold text-main">{targetHskDisplay}</span>
         </div>
       </div>
 

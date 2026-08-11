@@ -15,16 +15,17 @@ export const useRegister = () => {
   
   const navigate = useNavigate();
   const setToken = useAuthStore((state) => state.setToken);
+  const setUser = useAuthStore((state) => state.setUser);
 
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match. Please check again.');
+      setError('Mật khẩu xác nhận không khớp. Vui lòng kiểm tra lại.');
       return;
     }
     if (!agreeTerms) {
-      setError('You must agree to the Terms and Conditions.');
+      setError('Bạn cần đồng ý với các Điều khoản và Điều kiện.');
       return;
     }
     
@@ -32,24 +33,26 @@ export const useRegister = () => {
     setError('');
 
     try {
-      const config = { headers: { 'Content-Type': 'application/json' } };
       const response = await axiosClient.post('/auth/register', {
-        displayName: name,
-        name: name,
         email,
-        password
-      }, config);
-      
-      const accessToken = response.data.data?.tokens?.accessToken || response.data.accessToken;
+        password,
+        displayName: name,
+      });
+
+      const accessToken = response.data.data?.tokens?.accessToken;
+      const userData = response.data.data?.user;
       
       if (accessToken) {
         setToken(accessToken);
-        navigate('/dashboard');
+        if (userData && setUser) {
+          setUser(userData);
+        }
+        navigate('/onboarding');
       } else {
         navigate('/login');
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      setError(err.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại sau.');
     } finally {
       setLoading(false);
     }

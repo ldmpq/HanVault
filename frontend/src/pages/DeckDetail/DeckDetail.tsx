@@ -104,9 +104,9 @@ export default function DeckDetail() {
             >
               <Play className="w-4 h-4 fill-current" /> Bắt đầu ôn tập
             </button>
-            <button className="bg-surface hover:bg-line/50 text-brand px-8 py-3.5 rounded-xl font-medium text-sm flex items-center gap-2 border border-line transition-colors shadow-sm">
+            {/* <button className="bg-surface hover:bg-line/50 text-brand px-8 py-3.5 rounded-xl font-medium text-sm flex items-center gap-2 border border-line transition-colors shadow-sm">
               <Heart className="w-4 h-4" /> Yêu thích
-            </button>
+            </button> */}
           </div>
         </div>
       </div>

@@ -102,7 +102,7 @@ export default function StudyComplete({
             onClick={() => navigate('/library')} 
             className="flex-1 flex items-center justify-center gap-2 bg-brand text-white px-6 py-4 rounded-xl font-bold hover:bg-brand-hover transition-colors shadow-sm"
           >
-            <Library className="w-5 h-5" /> Tiếp tục học bộ thẻ khác
+            <Library className="w-5 h-5" /> Tiếp tục ôn tập
           </button>
         </div>
 

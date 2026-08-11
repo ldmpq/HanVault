@@ -3,14 +3,19 @@ import { RotateCw, Clock, PlusSquare, GraduationCap } from 'lucide-react';
 interface ReviewWidgetProps {
   flashcard?: { ready?: number; overdue?: number; new?: number };
   onStartReview: () => void;
+  onReload?: () => void;
 }
 
-export default function ReviewWidget({ flashcard, onStartReview }: ReviewWidgetProps) {
+export default function ReviewWidget({ flashcard, onStartReview, onReload }: ReviewWidgetProps) {
   return (
     <div className="lg:col-span-4 bg-surface rounded-[2rem] p-8 shadow-sm border border-line flex flex-col">
       <div className="flex justify-between items-center mb-8">
         <h2 className="text-xl font-bold text-main">Ôn tập</h2>
-        <button className="text-brand hover:rotate-180 transition-transform duration-500">
+        <button 
+          onClick={onReload}
+          className="text-brand hover:rotate-180 transition-transform duration-500"
+          title="Tải lại dữ liệu"
+        >
           <RotateCw className="w-4 h-4" />
         </button>
       </div>
@@ -19,7 +24,7 @@ export default function ReviewWidget({ flashcard, onStartReview }: ReviewWidgetP
         <div className="flex justify-between items-center bg-app p-4 rounded-2xl border border-line">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-surface rounded-full flex items-center justify-center shadow-sm text-brand"><GraduationCap className="w-4 h-4" /></div>
-            <span className="text-sm font-medium text-main">Ready</span>
+            <span className="text-sm font-medium text-main">Đến hạn</span>
           </div>
           <span className="text-xl font-bold text-brand">{flashcard?.ready || 0}</span>
         </div>
@@ -27,7 +32,7 @@ export default function ReviewWidget({ flashcard, onStartReview }: ReviewWidgetP
         <div className="flex justify-between items-center bg-app p-4 rounded-2xl border border-line">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-surface rounded-full flex items-center justify-center shadow-sm text-red-500"><Clock className="w-4 h-4" /></div>
-            <span className="text-sm font-medium text-main">Overdue</span>
+            <span className="text-sm font-medium text-main">Quá hạn</span>
           </div>
           <span className="text-xl font-bold text-red-500">{flashcard?.overdue || 0}</span>
         </div>
@@ -35,7 +40,7 @@ export default function ReviewWidget({ flashcard, onStartReview }: ReviewWidgetP
         <div className="flex justify-between items-center bg-app p-4 rounded-2xl border border-line">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-surface rounded-full flex items-center justify-center shadow-sm text-orange-500"><PlusSquare className="w-4 h-4" /></div>
-            <span className="text-sm font-medium text-main">New</span>
+            <span className="text-sm font-medium text-main">Mới</span>
           </div>
           <span className="text-xl font-bold text-orange-500">{flashcard?.new || 0}</span>
         </div>
