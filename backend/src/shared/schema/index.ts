@@ -40,6 +40,7 @@ export const users = pgTable('users', {
   avatarMediaId: bigint('avatar_media_id', { mode: 'number' }).references(() => media.id),
   currentHskLevel: smallint('current_hsk_level').default(1),
   targetHskLevel: smallint('target_hsk_level'),
+  learningGoals: text('learning_goals').array(), 
   dailyGoal: smallint('daily_goal').default(20),
   timezone: varchar('timezone', { length: 50 }).default('Asia/Ho_Chi_Minh'),
   role: userRoleEnum('role').default('user'),

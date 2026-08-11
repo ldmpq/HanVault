@@ -63,7 +63,7 @@ export default function SignIn() {
             <span className="text-xs font-medium text-sub group-hover:text-main transition-colors">Remember me</span>
           </label>
           <Link to="/forgot-password" className="text-xs font-bold text-brand hover:text-brand-hover">
-            Forgot password?
+            Bạn quên mật khẩu?
           </Link>
         </div>
 

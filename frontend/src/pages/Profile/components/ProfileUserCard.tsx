@@ -10,8 +10,10 @@ interface ProfileUserCardProps {
 export default function ProfileUserCard({
   user, userName, mastery, streak
 }: ProfileUserCardProps) {
-  const currentHskDisplay = user?.currentHskLevel ? `HSK ${user.currentHskLevel}` : 'Beginner';
+
+  const currentHskDisplay = user?.currentHskLevel !== undefined && user?.currentHskLevel !== null ? (user.currentHskLevel === 0 ? 'Beginner' : `HSK ${user.currentHskLevel}`) : 'Beginner';
   const targetHskDisplay = user?.targetHskLevel ? `HSK ${user.targetHskLevel}` : '--';
+  
   return (
     <div className="bg-surface rounded-[2rem] p-8 shadow-sm border border-line flex flex-col items-center">
       <div className="relative mb-4">
@@ -22,15 +24,17 @@ export default function ProfileUserCard({
         />
       </div>
       <h2 className="text-2xl font-bold text-main mb-1">{userName}</h2>
+      
+      {/* Sẽ cập nhật tính năng này dựa trên tuổi thọ tài khoản */}
       <p className="text-sub text-sm mb-8 font-medium">Dedicated Learner</p>
 
       <div className="flex w-full gap-4 mb-8">
         <div className="flex-1 bg-app rounded-2xl p-4 flex flex-col items-center justify-center border border-line">
-          <span className="text-[10px] font-bold text-sub uppercase tracking-widest mb-1">Current</span>
+          <span className="text-[10px] font-bold text-sub uppercase tracking-widest mb-1">Hiện tại</span>
           <span className="text-lg font-bold text-brand">{currentHskDisplay}</span>
         </div>
         <div className="flex-1 bg-app rounded-2xl p-4 flex flex-col items-center justify-center border border-line">
-          <span className="text-[10px] font-bold text-sub uppercase tracking-widest mb-1">Target</span>
+          <span className="text-[10px] font-bold text-sub uppercase tracking-widest mb-1">Mục tiêu</span>
           <span className="text-lg font-bold text-main">{targetHskDisplay}</span>
         </div>
       </div>

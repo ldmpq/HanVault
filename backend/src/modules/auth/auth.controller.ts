@@ -98,15 +98,23 @@ export class AuthController {
     const userId = req.user!.userId;
     
     try {
-      const { currentHskLevel, dailyGoal } = req.body;
+      const { currentHskLevel, targetHskLevel, learningGoals, dailyGoal } = req.body;
+      const parsedGoals = Array.isArray(learningGoals) ? (learningGoals as string[]) : [];
       
-      await AuthService.setupProfile(userId, currentHskLevel, dailyGoal);
+      await AuthService.setupProfile(
+        userId, 
+        currentHskLevel, 
+        targetHskLevel, 
+        parsedGoals, 
+        dailyGoal
+      );
       
       res.status(200).json({
         success: true,
         message: 'Thiết lập hành trình học tập thành công!',
       });
     } catch (error: any) {
+      console.error('🔥 LỖI BACKEND ONBOARDING:', error);
       if (error.message && error.message.startsWith('USER_NOT_FOUND')) {
         res.status(404).json({ success: false, message: error.message.split(': ')[1] });
         return;

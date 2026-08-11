@@ -75,7 +75,7 @@ export default function Register() {
               </svg>
             </div>
             <span className="text-xs font-medium text-sub">
-              I agree to the <a href="#" className="text-brand hover:underline font-bold">Terms and Conditions</a>
+              Tôi đồng ý với <a href="#" className="text-brand hover:underline font-bold">Điều khoản và Điều kiện</a>
             </span>
           </label>
         </div>

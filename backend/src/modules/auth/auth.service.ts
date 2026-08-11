@@ -215,7 +215,7 @@ export class AuthService {
   }
 
   // 6. Onboarding
-  static async setupProfile(userId: string, currentHskLevel: number, dailyGoal: number): Promise<void> {
+  static async setupProfile(userId: string, currentHskLevel: number, targetHskLevel: number, learningGoals: string[],  dailyGoal: number): Promise<void> {
     const user = await db.query.users.findFirst({
       where: eq(users.id, userId),
     });
@@ -223,11 +223,12 @@ export class AuthService {
     if (!user) {
       throw new Error('USER_NOT_FOUND: Không tìm thấy thông tin người dùng.');
     }
-
-    // Cập nhật currentHskLevel và dailyGoal
+    const finalGoals = Array.isArray(learningGoals) ? learningGoals : [];
     await db.update(users)
       .set({ 
-        currentHskLevel, 
+        currentHskLevel,
+        targetHskLevel,
+        learningGoals: finalGoals,
         dailyGoal 
       })
       .where(eq(users.id, userId));
