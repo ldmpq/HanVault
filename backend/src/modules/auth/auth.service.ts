@@ -207,11 +207,29 @@ export class AuthService {
       throw new Error('INVALID_PASSWORD: Mật khẩu hiện tại không chính xác!');
     }
 
-    // Mã hóa mật khẩu mới và lưu vào DB
     const hashedNewPassword = await hashPassword(newPassword);
 
     await db.update(users)
       .set({ passwordHash: hashedNewPassword })
+      .where(eq(users.id, userId));
+  }
+
+  // 6. Onboarding
+  static async setupProfile(userId: string, currentHskLevel: number, dailyGoal: number): Promise<void> {
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+    });
+
+    if (!user) {
+      throw new Error('USER_NOT_FOUND: Không tìm thấy thông tin người dùng.');
+    }
+
+    // Cập nhật currentHskLevel và dailyGoal
+    await db.update(users)
+      .set({ 
+        currentHskLevel, 
+        dailyGoal 
+      })
       .where(eq(users.id, userId));
   }
 }

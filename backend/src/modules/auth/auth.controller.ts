@@ -93,4 +93,25 @@ export class AuthController {
       throw error;
     }
   }
+
+  static async setupProfile(req: Request, res: Response): Promise<void> {
+    const userId = req.user!.userId;
+    
+    try {
+      const { currentHskLevel, dailyGoal } = req.body;
+      
+      await AuthService.setupProfile(userId, currentHskLevel, dailyGoal);
+      
+      res.status(200).json({
+        success: true,
+        message: 'Thiết lập hành trình học tập thành công!',
+      });
+    } catch (error: any) {
+      if (error.message && error.message.startsWith('USER_NOT_FOUND')) {
+        res.status(404).json({ success: false, message: error.message.split(': ')[1] });
+        return;
+      }
+      res.status(500).json({ success: false, message: 'Lỗi hệ thống khi lưu cài đặt' });
+    }
+  }
 }

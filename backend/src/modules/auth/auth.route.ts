@@ -146,4 +146,26 @@ router.get('/me', authenticateJwt, AuthController.getMe);
  */
 router.put('/update-password', authenticateJwt, validate(updatePasswordSchema), AuthController.updatePassword);
 
+/**
+ * @swagger
+ * /api/auth/setup-profile:
+ *   put:
+ *     summary: Thiết lập thông tin HSK và mục tiêu sau khi đăng ký
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               currentHskLevel:
+ *                 type: integer
+ *               dailyGoal:
+ *                 type: integer
+ */
+router.put('/setup-profile', authenticateJwt, AuthController.setupProfile);
+
 export default router;
