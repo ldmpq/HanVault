@@ -2,10 +2,11 @@ import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useGreeting } from '../../shared/hooks/useGreeting';
 import { useDashboard } from './hooks/useDashboard';
-import ActivityHeatmap from '../../shared/components/ActivityHeatmap';
 import HeroSection from './components/HeroSection';
 import ReviewWidget from './components/ReviewWidget';
 import CurrentCourseWidget from './components/CurrentCourseWidget';
+import RecommendedDecks from './components/RecommendedDecks';
+import ActivityHeatmap from '../../shared/components/ActivityHeatmap';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -68,7 +69,10 @@ export default function Dashboard() {
         />
       </div>
 
-      <ActivityHeatmap weeklyProgress={data.weeklyProgress} />
+      <div className="mt-8 space-y-8">
+        <RecommendedDecks />
+        <ActivityHeatmap weeklyProgress={data.weeklyProgress} />
+      </div>
 
     </div>
   );

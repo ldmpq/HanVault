@@ -79,11 +79,11 @@ export default function AuthLayout({ children, title, subtitle, activeTab, quote
             <div className="absolute inset-x-0 top-0 animate-scroll-vertical" style={{ animationDuration: '70s' }}>
               {(() => {
                 const artworks = [
-                  { title: "A Calm Space to Learn", imageSrc: "/images/zen01.jpg" },
-                  { title: "Learn at Your Own Pace", imageSrc: "/images/zen02.jpg" },
-                  { title: "Enjoy the Journey", imageSrc: "/images/zen03.jpg" },
-                  { title: "Discover Chinese Culture", imageSrc: "/images/zen04.jpg" },
-                  { title: "Grow with Confidence", imageSrc: "/images/zen05.jpg" },
+                  { title: "A Calm Space to Learn", imageSrc: "/images/zen/zen01.jpg" },
+                  { title: "Learn at Your Own Pace", imageSrc: "/images/zen/zen02.jpg" },
+                  { title: "Enjoy the Journey", imageSrc: "/images/zen/zen03.jpg" },
+                  { title: "Discover Chinese Culture", imageSrc: "/images/zen/zen04.jpg" },
+                  { title: "Grow with Confidence", imageSrc: "/images/zen/zen05.jpg" },
                 ];
 
                 return (

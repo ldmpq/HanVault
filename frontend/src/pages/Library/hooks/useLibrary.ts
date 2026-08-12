@@ -27,7 +27,7 @@ function filterDecksByTab(decks: Deck[], tab: string): Deck[] {
     case 'HSK 1-2': return decks.filter((d) => !isFavoriteDeck(d) && [1, 2].includes(level(d)));
     case 'HSK 3-4': return decks.filter((d) => !isFavoriteDeck(d) && [3, 4].includes(level(d)));
     case 'HSK 5-6': return decks.filter((d) => !isFavoriteDeck(d) && [5, 6].includes(level(d)));
-    case 'HSK 7-8-9': return decks.filter((d) => !isFavoriteDeck(d) && [7, 8, 9].includes(level(d)));
+    case 'HSK 7-9': return decks.filter((d) => !isFavoriteDeck(d) && [7, 8, 9].includes(level(d)));
     case 'My list': return decks.filter((d) => isFavoriteDeck(d) || (d as any).isOwner === true || (d as any).isSaved === true);
     case 'Topics': return decks.filter((d) => !isFavoriteDeck(d) && !d.level);
     default: return decks;

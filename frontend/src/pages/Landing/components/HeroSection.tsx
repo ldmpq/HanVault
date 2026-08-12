@@ -23,13 +23,14 @@ export default function HeroSection() {
       </div>
       
       <div className="flex-1 w-full relative">
-        <div className="aspect-square md:aspect-[4/3] w-full rounded-[2.5rem] bg-gradient-to-tr from-brand/10 to-orange-500/10 shadow-sm border border-line overflow-hidden relative flex items-center justify-center transition-colors">
+        <div className="aspect-square md:aspect-[4/3] w-full rounded-[2.5rem] bg-neutral-100 dark:bg-neutral-900 shadow-sm border border-line overflow-hidden relative flex items-center justify-center transition-colors duration-500">
+          
           <img 
-            src="https://images.unsplash.com/photo-1541959833400-049d37f98ccd?auto=format&fit=crop&w=800&q=80" 
+            src="/public/images/zen/zen06.jpg" 
             alt="HanVault App Interface Illustration" 
-            className="w-full h-full object-cover opacity-80 mix-blend-multiply dark:mix-blend-overlay"
+            className="w-full h-full object-cover transition-all duration-700 dark:brightness-[0.35] dark:saturate-50 dark:contrast-125"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-app via-transparent to-transparent"></div>
+          
         </div>
       </div>
     </section>

@@ -32,7 +32,7 @@ export default function HeroSection({
           {greeting}{userName && <>, <span className="text-brand">{userName}</span></>}
         </h1>
         <p className="text-sub mb-8 leading-relaxed text-sm md:text-base">
-          You're making steady progress toward HSK. Today is a great day to master those challenging characters. Let's keep the momentum going.
+          Bạn đang tiến bộ đều đặn trên hành trình chinh phục HSK. Hôm nay là một ngày tuyệt vời để làm chủ những chữ Hán khó. Hãy tiếp tục duy trì đà học tập!
         </p>
         <button 
           onClick={onContinue}

@@ -14,7 +14,11 @@ export default function ThemeSwitch() {
   return (
     <button
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      className="relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-300 bg-surface border border-line focus:outline-none hover:border-brand/30"
+      className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-300 border-2 focus:outline-none hover:border-brand/50 ${
+        isDark 
+          ? 'bg-neutral-800 border-neutral-700' 
+          : 'bg-neutral-200 border-neutral-300'
+      }`}
       aria-label="Chuyển đổi giao diện Sáng/Tối"
     >
       <span 
@@ -22,7 +26,11 @@ export default function ThemeSwitch() {
           isDark ? 'translate-x-8' : 'translate-x-1'
         }`}
       >
-        {isDark ? <Moon className="w-3 h-3 text-brand" /> : <Sun className="w-3 h-3 text-brand" />}
+        {isDark ? (
+          <Moon className="w-3 h-3 text-brand" /> 
+        ) : (
+          <Sun className="w-3 h-3 text-brand" />
+        )}
       </span>
     </button>
   );
