@@ -21,10 +21,14 @@ export default function LibraryDeckCard({
 }: LibraryDeckCardProps) {
   const navigate = useNavigate();
 
+  const progress = deck.progress || 0;
+  const hasStarted = progress > 0;
+  const isCompleted = progress >= 100;
+
   return (
     <div 
       onClick={() => navigate(`/deck/${deck.id}`)} 
-      className="bg-surface rounded-[2rem] p-6 shadow-sm border border-line hover:border-brand/30 hover:shadow-md transition-all cursor-pointer flex flex-col min-h-[260px] relative"
+      className="bg-surface rounded-[2rem] p-6 shadow-sm border border-line hover:border-brand/30 hover:shadow-md transition-all cursor-pointer flex flex-col min-h-[260px] relative group"
     >
       <div className="flex justify-between items-start mb-6">
         <div className={`w-10 h-10 ${deck.bgColor} ${deck.iconColor} rounded-xl flex items-center justify-center border border-current/10`}>
@@ -71,19 +75,30 @@ export default function LibraryDeckCard({
         <span className="text-sm font-bold text-brand leading-none">字</span>{deck.words} từ
       </div>
 
-      {deck.progress > 0 ? (
-        <>
-          <div className="w-full h-1.5 bg-line rounded-full overflow-hidden mb-4">
-            <div className="h-full bg-brand rounded-full" style={{ width: `${deck.progress}%` }}></div>
-          </div>
-          <button className="w-full py-2.5 rounded-xl border border-brand text-brand font-bold text-xs hover:bg-brand/10 transition-colors">Tiếp tục</button>
-        </>
+      {/* ================= LOGIC TIẾN ĐỘ 3 TRẠNG THÁI ================= */}
+      <div className={`w-full h-1.5 rounded-full overflow-hidden mb-4 ${hasStarted ? 'bg-line' : 'bg-transparent'}`}>
+        {hasStarted && (
+          <div 
+            className={`h-full rounded-full ${isCompleted ? 'bg-emerald-500' : 'bg-brand'}`} 
+            style={{ width: `${progress}%` }}
+          ></div>
+        )}
+      </div>
+
+      {isCompleted ? (
+        <button className="w-full py-2.5 rounded-xl border border-emerald-500 text-emerald-500 font-bold text-xs group-hover:bg-emerald-500/10 transition-colors">
+          Ôn tập lại
+        </button>
+      ) : hasStarted ? (
+        <button className="w-full py-2.5 rounded-xl border border-brand text-brand font-bold text-xs group-hover:bg-brand/10 transition-colors">
+          Tiếp tục
+        </button>
       ) : (
-        <>
-          <div className="w-full h-1.5 bg-transparent mb-4"></div>
-          <button className="w-full py-2.5 rounded-xl bg-line/50 text-sub font-bold text-xs hover:text-main hover:bg-line transition-colors">Bắt đầu</button>
-        </>
+        <button className="w-full py-2.5 rounded-xl bg-line/50 text-sub font-bold text-xs group-hover:text-main group-hover:bg-line transition-colors">
+          Bắt đầu
+        </button>
       )}
+      
     </div>
   );
 }

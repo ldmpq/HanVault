@@ -2,18 +2,23 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { AlertTriangle } from 'lucide-react';
 import { useReviewSession } from './hooks/useReviewSession';
 import { useTextToSpeech } from '../../shared/hooks/useTextToSpeech';
-import StudyComplete from './components/StudyComplete'; 
 import { useReviewTimer } from './hooks/useReviewTimer';
 
 import PauseOverlay from './components/PauseOverlay';
 import ReviewHeader from './components/ReviewHeader';
 import Flashcard3D from './components/Flashcard3D';
 import RatingControls from './components/RatingControls';
+import StudyComplete from './components/StudyComplete'; 
+import ReviewDeckSelector from './components/ReviewDeckSelector'; 
 
 export default function Review() {
   const { deckId } = useParams();
   const navigate = useNavigate();
-  
+
+  if (!deckId) {
+    return <ReviewDeckSelector />;
+  }
+
   const { 
     session, currentIndex, isFlipped, setIsFlipped, isFinished, 
     isLoading, error, handleRate, restartSession, isPaused, setIsPaused 
@@ -61,7 +66,6 @@ export default function Review() {
       </div>
     );
   }
-  if (!deckId) return <div className="flex flex-col items-center justify-center py-32"><h2 className="text-3xl font-bold text-main">Vui lòng chọn một bộ bài để ôn tập</h2></div>;
 
   if (isFinished) {
     return (
