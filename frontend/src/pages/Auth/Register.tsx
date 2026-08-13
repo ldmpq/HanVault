@@ -1,3 +1,4 @@
+import { CheckCircle2, Circle, XCircle } from 'lucide-react';
 import AuthLayout from './components/AuthLayout';
 import { useRegister } from './hooks/useRegister';
 import PasswordField from '../../shared/components/PasswordField';
@@ -12,6 +13,28 @@ export default function Register() {
     loading, error, handleRegister
   } = useRegister();
 
+  const reqMinLength = password.length >= 8;
+  const reqUppercase = /[A-Z]/.test(password);
+  const reqNumber = /[0-9]/.test(password);
+  const reqSpecial = /[^a-zA-Z0-9]/.test(password);
+
+  const RequirementItem = ({ met, text }: { met: boolean; text: string }) => {
+    const isTyping = password.length > 0;
+
+    return (
+      <div className={`flex items-center gap-1.5 text-xs font-medium transition-colors duration-300 ${
+        met ? 'text-green-500' : (isTyping ? 'text-red-500' : 'text-sub')
+      }`}>
+        {met ? (
+          <CheckCircle2 className="w-3.5 h-3.5" />
+        ) : (
+          isTyping ? <XCircle className="w-3.5 h-3.5" /> : <Circle className="w-3.5 h-3.5" />
+        )}
+        <span>{text}</span>
+      </div>
+    );
+  };
+
   return (
     <AuthLayout
       title="Tạo tài khoản"
@@ -21,7 +44,7 @@ export default function Register() {
       quoteSub="(千里之行始于足下)"
     >
       {error && (
-        <div className="w-full mb-5 p-3 bg-brand/10 text-brand text-sm rounded-lg font-medium border border-brand/20">
+        <div className="w-full mb-5 p-3 bg-brand/10 text-brand text-sm rounded-lg font-medium border border-brand/20 animate-fade-in">
           {error}
         </div>
       )}
@@ -29,7 +52,7 @@ export default function Register() {
       <form onSubmit={handleRegister} className="space-y-4">
         <div className="grid grid-cols-1 gap-4">
           <div>
-            <label className="block text-xs font-bold text-main mb-1.5">Full Name</label>
+            <label className="block text-xs font-bold text-main mb-1.5">Họ và tên</label>
             <input
               type="text" value={name} onChange={(e) => setName(e.target.value)}
               placeholder="Lao Tzu"
@@ -39,7 +62,7 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-main mb-1.5">Email address</label>
+            <label className="block text-xs font-bold text-main mb-1.5">Địa chỉ email</label>
             <input
               type="email" value={email} onChange={(e) => setEmail(e.target.value)}
               placeholder="laotzu@example.com"
@@ -49,15 +72,25 @@ export default function Register() {
           </div>
         </div>
 
-        <PasswordField 
-          label="Password" 
-          value={password} 
-          onChange={setPassword} 
-          required 
-        />
+        <div>
+          <PasswordField 
+            label="Mật khẩu" 
+            value={password} 
+            onChange={setPassword} 
+            required 
+          />
+          
+          {/* Checklist */}
+          <div className="mt-2 flex flex-col gap-2.5 bg-line/20 p-3.5 rounded-xl border border-line/50">
+            <RequirementItem met={reqMinLength} text="Ít nhất 8 ký tự" />
+            <RequirementItem met={reqUppercase} text="Ít nhất 1 chữ cái in hoa" />
+            <RequirementItem met={reqNumber} text="Ít nhất 1 chữ số" />
+            <RequirementItem met={reqSpecial} text="Ít nhất 1 ký tự đặc biệt" />
+          </div>
+        </div>
 
         <PasswordField 
-          label="Confirm Password" 
+          label="Xác nhận mật khẩu" 
           value={confirmPassword} 
           onChange={setConfirmPassword} 
           required 
@@ -80,8 +113,8 @@ export default function Register() {
           </label>
         </div>
 
-        <button type="submit" disabled={loading} className="w-full bg-brand hover:bg-brand-hover text-white font-bold py-3 rounded-xl transition-all disabled:opacity-70 mt-2 shadow-sm">
-          {loading ? 'Creating account...' : 'Create Account'}
+        <button type="submit" disabled={loading} className="w-full bg-brand hover:bg-brand-hover text-white font-bold py-3 rounded-xl transition-all disabled:opacity-70 mt-2 shadow-sm flex justify-center items-center">
+          {loading ? 'Creating account...' : 'Tạo tài khoản'}
         </button>
       </form>
     </AuthLayout>

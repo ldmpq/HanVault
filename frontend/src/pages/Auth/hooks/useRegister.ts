@@ -20,10 +20,21 @@ export const useRegister = () => {
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    const isValidPassword = password.length >= 8 
+      && /[A-Z]/.test(password) 
+      && /[0-9]/.test(password) 
+      && /[^a-zA-Z0-9]/.test(password);
+
+    if (!isValidPassword) {
+      setError('Mật khẩu chưa đáp ứng đủ các yêu cầu bảo mật.');
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError('Mật khẩu xác nhận không khớp. Vui lòng kiểm tra lại.');
       return;
     }
+    
     if (!agreeTerms) {
       setError('Bạn cần đồng ý với các Điều khoản và Điều kiện.');
       return;

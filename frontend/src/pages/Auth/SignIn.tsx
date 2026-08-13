@@ -60,7 +60,7 @@ export default function SignIn() {
                 <polyline points="20 6 9 17 4 12"></polyline>
               </svg>
             </div>
-            <span className="text-xs font-medium text-sub group-hover:text-main transition-colors">Remember me</span>
+            <span className="text-xs font-medium text-sub group-hover:text-main transition-colors">Ghi nhớ đăng nhập</span>
           </label>
           <Link to="/forgot-password" className="text-xs font-bold text-brand hover:text-brand-hover">
             Bạn quên mật khẩu?
@@ -72,7 +72,7 @@ export default function SignIn() {
           disabled={loading}
           className="w-full bg-brand hover:bg-brand-hover text-white font-bold py-3 rounded-xl transition-all disabled:opacity-70 mt-2 shadow-sm"
         >
-          {loading ? 'Logging in...' : 'Log In'}
+          {loading ? 'Logging in...' : 'Đăng nhập'}
         </button>
       </form>
     </AuthLayout>

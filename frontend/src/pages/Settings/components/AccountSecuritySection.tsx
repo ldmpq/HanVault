@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Mail, Lock, Shield, Loader2, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, Shield, Loader2, CheckCircle2, Circle, XCircle, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import axiosClient from '../../../shared/lib/axiosClient';
 import { useAuthStore } from '../../../shared/store/authStore';
 
@@ -13,6 +13,11 @@ export default function AccountSecuritySection() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
@@ -30,14 +35,38 @@ export default function AccountSecuritySection() {
 
   const displayEmail = showEmail ? user?.email : getMaskedEmail(user?.email);
 
+  const reqMinLength = newPassword.length >= 8;
+  const reqUppercase = /[A-Z]/.test(newPassword);
+  const reqNumber = /[0-9]/.test(newPassword);
+  const reqSpecial = /[^a-zA-Z0-9]/.test(newPassword);
+
+  const RequirementItem = ({ met, text }: { met: boolean; text: string }) => {
+    const isTyping = newPassword.length > 0;
+
+    return (
+      <div className={`flex items-center gap-1.5 text-xs font-medium transition-colors duration-300 ${
+        met ? 'text-green-500' : (isTyping ? 'text-red-500' : 'text-sub')
+      }`}>
+        {met ? (
+          <CheckCircle2 className="w-3.5 h-3.5" />
+        ) : (
+          isTyping ? <XCircle className="w-3.5 h-3.5" /> : <Circle className="w-3.5 h-3.5" />
+        )}
+        <span>{text}</span>
+      </div>
+    );
+  };
+
   const handleUpdatePassword = async () => {
     if (!currentPassword || !newPassword) {
       setMessage({ type: 'error', text: 'Vui lòng nhập đầy đủ thông tin.' });
       return;
     }
     
-    if (newPassword.length < 8) {
-      setMessage({ type: 'error', text: 'Mật khẩu mới phải có ít nhất 8 ký tự.' });
+    const isValidPassword = reqMinLength && reqUppercase && reqNumber && reqSpecial;
+
+    if (!isValidPassword) {
+      setMessage({ type: 'error', text: 'Mật khẩu mới chưa đáp ứng đủ các yêu cầu bảo mật.' });
       return;
     }
 
@@ -60,6 +89,9 @@ export default function AccountSecuritySection() {
         setCurrentPassword('');
         setNewPassword('');
         setConfirmPassword('');
+        setShowCurrentPassword(false);
+        setShowNewPassword(false);
+        setShowConfirmPassword(false);
         
         setTimeout(() => {
           setEditingPassword(false);
@@ -144,6 +176,10 @@ export default function AccountSecuritySection() {
               setMessage({ type: '', text: '' }); 
               setCurrentPassword('');
               setNewPassword('');
+              setConfirmPassword('');
+              setShowCurrentPassword(false);
+              setShowNewPassword(false);
+              setShowConfirmPassword(false);
             }}
             className="text-xs font-bold text-brand bg-brand/10 hover:bg-brand/20 px-4 py-2 rounded-xl transition-colors"
           >
@@ -163,34 +199,72 @@ export default function AccountSecuritySection() {
 
             <div className="space-y-1">
               <label className="text-xs font-bold text-sub uppercase tracking-wider">Mật khẩu hiện tại</label>
-              <input 
-                type="password" 
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder="Nhập mật khẩu hiện tại" 
-                className="w-full bg-surface border border-line text-main rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all" 
-              />
+              <div className="relative">
+                <input 
+                  type={showCurrentPassword ? "text" : "password"} 
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Nhập mật khẩu hiện tại" 
+                  className="w-full bg-surface border border-line text-main rounded-xl px-4 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all" 
+                />
+                <button 
+                  type="button"
+                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-sub hover:text-main transition-colors"
+                >
+                  {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
+
             <div className="space-y-1">
               <label className="text-xs font-bold text-sub uppercase tracking-wider">Mật khẩu mới</label>
-              <input 
-                type="password" 
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Nhập mật khẩu mới (ít nhất 8 ký tự)" 
-                className="w-full bg-surface border border-line text-main rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all" 
-              />
+              <div className="relative">
+                <input 
+                  type={showNewPassword ? "text" : "password"} 
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Nhập mật khẩu mới" 
+                  className="w-full bg-surface border border-line text-main rounded-xl px-4 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all" 
+                />
+                <button 
+                  type="button"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-sub hover:text-main transition-colors"
+                >
+                  {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              
+              {/* Checklist */}
+              <div className="mt-2 flex flex-col gap-2.5 bg-line/20 p-3.5 rounded-xl border border-line/50">
+                <RequirementItem met={reqMinLength} text="Ít nhất 8 ký tự" />
+                <RequirementItem met={reqUppercase} text="Ít nhất 1 chữ in hoa" />
+                <RequirementItem met={reqNumber} text="Ít nhất 1 chữ số" />
+                <RequirementItem met={reqSpecial} text="Ít nhất 1 ký tự đặc biệt" />
+              </div>
             </div>
+
             <div className="space-y-1">
               <label className="text-xs font-bold text-sub uppercase tracking-wider">Xác nhận mật khẩu mới</label>
-              <input 
-                type="password" 
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Nhập lại mật khẩu mới" 
-                className="w-full bg-surface border border-line text-main rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all" 
-              />
+              <div className="relative">
+                <input 
+                  type={showConfirmPassword ? "text" : "password"} 
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Nhập lại mật khẩu mới" 
+                  className="w-full bg-surface border border-line text-main rounded-xl px-4 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all" 
+                />
+                <button 
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-sub hover:text-main transition-colors"
+                >
+                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
+            
             <button 
               onClick={handleUpdatePassword}
               disabled={isLoading}
