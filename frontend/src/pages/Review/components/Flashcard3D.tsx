@@ -1,4 +1,4 @@
-import { Volume2, Star } from 'lucide-react';
+import { Volume2, Heart } from 'lucide-react';
 
 interface Flashcard3DProps {
   card: any;
@@ -30,7 +30,7 @@ export default function Flashcard3D({ card, isFlipped, setIsFlipped, playAudio, 
             </div>
             <div className="flex gap-3">
               <button onClick={(e) => {e.stopPropagation(); playAudio(e, card.simplified);}} className="w-10 h-10 bg-app text-sub rounded-full flex items-center justify-center hover:bg-line hover:text-main transition-colors border border-line"><Volume2 className="w-5 h-5" /></button>
-              <button onClick={(e) => e.stopPropagation()} className="w-10 h-10 bg-app text-sub rounded-full flex items-center justify-center hover:bg-line hover:text-main transition-colors border border-line"><Star className="w-5 h-5" /></button>
+              <button onClick={(e) => e.stopPropagation()} className="w-10 h-10 bg-app text-sub rounded-full flex items-center justify-center hover:bg-line hover:text-main transition-colors border border-line"><Heart className="w-5 h-5" /></button>
             </div>
           </div>
 

@@ -3,21 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import type { Deck } from '../../../shared/types/deck.types';
 
 interface LibraryDeckCardProps {
-  deck: Deck;
-  activeMenuId: number | null;
-  setActiveMenuId: (id: number | null) => void;
-  setTargetDeck: (deck: any) => void;
-  setIsDeckModalOpen: (isOpen: boolean) => void;
-  handleDeleteDeck: (id: number) => void;
+  deck: Deck | any;
+  activeMenuId?: number | null;
+  setActiveMenuId?: (id: number | null) => void;
+  setTargetDeck?: (deck: any) => void;
+  setIsDeckModalOpen?: (isOpen: boolean) => void;
+  handleDeleteDeck?: (id: number) => void;
+  customOnClick?: () => void;
 }
 
 export default function LibraryDeckCard({
   deck,
-  activeMenuId,
+  activeMenuId = null,
   setActiveMenuId,
   setTargetDeck,
   setIsDeckModalOpen,
-  handleDeleteDeck
+  handleDeleteDeck,
+  customOnClick
 }: LibraryDeckCardProps) {
   const navigate = useNavigate();
 
@@ -25,9 +27,17 @@ export default function LibraryDeckCard({
   const hasStarted = progress > 0;
   const isCompleted = progress >= 100;
 
+  const handleCardClick = () => {
+    if (customOnClick) {
+      customOnClick();
+    } else {
+      navigate(`/deck/${deck.id}`);
+    }
+  };
+
   return (
     <div 
-      onClick={() => navigate(`/deck/${deck.id}`)} 
+      onClick={handleCardClick} 
       className="bg-surface rounded-[2rem] p-6 shadow-sm border border-line hover:border-brand/30 hover:shadow-md transition-all cursor-pointer flex flex-col min-h-[260px] relative group"
     >
       <div className="flex justify-between items-start mb-6">
@@ -38,7 +48,7 @@ export default function LibraryDeckCard({
         {deck.tag === 'Tự tạo' ? (
           <div className="relative">
             <button 
-              onClick={(e) => { e.stopPropagation(); setActiveMenuId(activeMenuId === deck.id ? null : deck.id); }}
+              onClick={(e) => { e.stopPropagation(); setActiveMenuId?.(activeMenuId === deck.id ? null : deck.id); }}
               className="p-1 text-sub hover:text-main bg-line/50 hover:bg-line rounded-lg transition-colors"
             >
               <MoreVertical className="w-5 h-5" />
@@ -47,13 +57,13 @@ export default function LibraryDeckCard({
             {activeMenuId === deck.id && (
               <div className="absolute top-full right-0 mt-2 w-36 bg-surface rounded-xl shadow-xl border border-line overflow-hidden z-20 animate-fade-in py-1">
                 <button 
-                  onClick={(e) => { e.stopPropagation(); setTargetDeck(deck); setIsDeckModalOpen(true); setActiveMenuId(null); }}
+                  onClick={(e) => { e.stopPropagation(); setTargetDeck?.(deck); setIsDeckModalOpen?.(true); setActiveMenuId?.(null); }}
                   className="w-full px-4 py-2 text-left text-sm font-medium text-main hover:bg-line/50 flex items-center gap-2"
                 >
                   <Edit2 className="w-4 h-4" /> Chỉnh sửa
                 </button>
                 <button 
-                  onClick={(e) => { e.stopPropagation(); handleDeleteDeck(deck.id); setActiveMenuId(null); }}
+                  onClick={(e) => { e.stopPropagation(); handleDeleteDeck?.(deck.id); setActiveMenuId?.(null); }}
                   className="w-full px-4 py-2 text-left text-sm font-medium text-red-500 hover:bg-red-500/10 flex items-center gap-2"
                 >
                   <Trash2 className="w-4 h-4" /> Xóa bộ thẻ
@@ -75,7 +85,7 @@ export default function LibraryDeckCard({
         <span className="text-sm font-bold text-brand leading-none">字</span>{deck.words} từ
       </div>
 
-      {/* ================= LOGIC TIẾN ĐỘ 3 TRẠNG THÁI ================= */}
+      {/* Hiển thị UI dựa theo Progress tự động */}
       <div className={`w-full h-1.5 rounded-full overflow-hidden mb-4 ${hasStarted ? 'bg-line' : 'bg-transparent'}`}>
         {hasStarted && (
           <div 
@@ -98,7 +108,6 @@ export default function LibraryDeckCard({
           Bắt đầu
         </button>
       )}
-      
     </div>
   );
 }

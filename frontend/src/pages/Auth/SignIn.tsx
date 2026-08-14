@@ -29,7 +29,7 @@ export default function SignIn() {
 
       <form onSubmit={handleSignIn} className="space-y-4">
         <div>
-          <label className="block text-xs font-bold text-main mb-1.5">Email address</label>
+          <label className="block text-xs font-bold text-main mb-1.5">Địa chỉ email</label>
           <input
             type="email"
             value={email}
@@ -41,7 +41,7 @@ export default function SignIn() {
         </div>
 
         <PasswordField 
-          label="Password" 
+          label="Mật khẩu" 
           value={password} 
           onChange={setPassword} 
           required 
