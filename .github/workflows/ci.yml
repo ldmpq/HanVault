@@ -10,7 +10,7 @@ jobs:
   # JOB 1: ESLINT (Kiểm tra lỗi cú pháp)
   # ==========================================
   eslint:
-    name: Run ESLint
+    name: eslint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -39,7 +39,7 @@ jobs:
   # JOB 2: TEST (Chạy Unit Tests)
   # ==========================================
   test:
-    name: Run Unit Tests
+    name: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -68,7 +68,7 @@ jobs:
   # JOB 3: BUILD (Đóng gói ứng dụng)
   # ==========================================
   build:
-    name: Build Project
+    name: build
     runs-on: ubuntu-latest
     # Chỉ build khi eslint và test đã pass thành công
     needs: [eslint, test] 
