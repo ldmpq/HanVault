@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { Play, Heart, ArrowRight, ChevronRight } from 'lucide-react';
+import { Play, ArrowRight, ChevronRight } from 'lucide-react';
 import Pagination from '../../shared/components/Pagination';
 import { useDeckDetail } from './hooks/useDeckDetail';
 import DeckWordCard from './components/DeckWordCard';

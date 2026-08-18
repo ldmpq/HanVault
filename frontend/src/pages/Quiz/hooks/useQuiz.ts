@@ -13,10 +13,6 @@ export const useQuiz = () => {
   const [activeQuizId, setActiveQuizId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load danh sách quizzes khi vào trang
-  useEffect(() => {
-    fetchQuizzes();
-  }, []);
 
   const fetchQuizzes = async () => {
     try {
@@ -73,6 +69,11 @@ export const useQuiz = () => {
     setQuestions([]);
     setResults(null);
   };
+
+  // Load danh sách quizzes khi vào trang
+  useEffect(() => {
+    fetchQuizzes();
+  }, []);
 
   return {
     quizState,

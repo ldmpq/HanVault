@@ -1,0 +1,96 @@
+name: HanVault CI
+
+# Chỉ kích hoạt Workflow này khi có Pull Request trỏ vào nhánh main
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  # ==========================================
+  # JOB 1: ESLINT (Kiểm tra lỗi cú pháp)
+  # ==========================================
+  eslint:
+    name: eslint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+          
+      - name: Install & Lint Frontend
+        working-directory: ./frontend
+        run: |
+          npm install
+          npm run lint
+          
+      - name: Install & Lint Backend
+        working-directory: ./backend
+        run: |
+          npm install
+          npm run lint
+
+  # ==========================================
+  # JOB 2: TEST (Chạy Unit Tests)
+  # ==========================================
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+
+      - name: Install & Test Frontend
+        working-directory: ./frontend
+        run: |
+          npm install
+          npm run test
+
+      - name: Install & Test Backend
+        working-directory: ./backend
+        run: |
+          npm install
+          npm run test
+
+  # ==========================================
+  # JOB 3: BUILD (Đóng gói ứng dụng)
+  # ==========================================
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    # Chỉ build khi eslint và test đã pass thành công
+    needs: [eslint, test] 
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+
+      - name: Install & Build Frontend
+        working-directory: ./frontend
+        run: |
+          npm install
+          npm run build
+
+      - name: Install & Build Backend
+        working-directory: ./backend
+        run: |
+          npm install
+          npm run build
