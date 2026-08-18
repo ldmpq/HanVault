@@ -15,10 +15,6 @@ export default function Review() {
   const { deckId } = useParams();
   const navigate = useNavigate();
 
-  if (!deckId) {
-    return <ReviewDeckSelector />;
-  }
-
   const { 
     session, currentIndex, isFlipped, setIsFlipped, isFinished, 
     isLoading, error, handleRate, restartSession, isPaused, setIsPaused 
@@ -59,6 +55,10 @@ export default function Review() {
   const totalCards = session?.cards?.length || 1;
   const currentCardNumber = currentIndex + 1;
   const displayMeaning = card.meanings?.[0]?.meaning || card.meaning || 'Đang cập nhật nghĩa...';
+
+  if (!deckId) {
+    return <ReviewDeckSelector />;
+  }
 
   if (isLoading) return <div className="text-center py-20 text-sub font-medium animate-pulse">Đang khởi tạo phiên học...</div>;
   if (error) {
