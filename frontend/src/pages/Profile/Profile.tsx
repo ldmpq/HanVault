@@ -21,8 +21,6 @@ export default function Profile() {
   const userName = dashboard?.userName || user?.displayName || 'Người dùng';
   const mastery = dashboard?.mastered?.percentage || 0;
   const streak = dashboard?.streak || 0;
-  const currentHsk = dashboard?.currentLevel || 'HSK 3';
-  const targetHsk = dashboard?.targetLevel || 'HSK 4';
   const dailyGoalMins = dashboard?.dailyGoal?.target || 30;
 
   return (
@@ -34,8 +32,6 @@ export default function Profile() {
           <ProfileUserCard 
             user={user} 
             userName={userName} 
-            currentHsk={currentHsk} 
-            targetHsk={targetHsk} 
             mastery={mastery} 
             streak={streak} 
           />
