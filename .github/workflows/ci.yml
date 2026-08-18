@@ -55,13 +55,13 @@ jobs:
       - name: Install & Test Frontend
         working-directory: ./frontend
         run: |
-          npm ci
+          npm install
           npm run test
 
       - name: Install & Test Backend
         working-directory: ./backend
         run: |
-          npm ci
+          npm install
           npm run test
 
   # ==========================================
@@ -86,11 +86,11 @@ jobs:
       - name: Install & Build Frontend
         working-directory: ./frontend
         run: |
-          npm ci
+          npm install
           npm run build
 
       - name: Install & Build Backend
         working-directory: ./backend
         run: |
-          npm ci
+          npm install
           npm run build
