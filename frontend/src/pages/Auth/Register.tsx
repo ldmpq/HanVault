@@ -3,6 +3,21 @@ import AuthLayout from './components/AuthLayout';
 import { useRegister } from './hooks/useRegister';
 import PasswordField from '../../shared/components/PasswordField';
 
+const RequirementItem = ({ met, text, isTyping }: { met: boolean; text: string; isTyping: boolean }) => {
+  return (
+    <div className={`flex items-center gap-1.5 text-xs font-medium transition-colors duration-300 ${
+      met ? 'text-green-500' : (isTyping ? 'text-red-500' : 'text-sub')
+    }`}>
+      {met ? (
+        <CheckCircle2 className="w-3.5 h-3.5" />
+      ) : (
+        isTyping ? <XCircle className="w-3.5 h-3.5" /> : <Circle className="w-3.5 h-3.5" />
+      )}
+      <span>{text}</span>
+    </div>
+  );
+};
+
 export default function Register() {
   const {
     name, setName,
@@ -18,22 +33,7 @@ export default function Register() {
   const reqNumber = /[0-9]/.test(password);
   const reqSpecial = /[^a-zA-Z0-9]/.test(password);
 
-  const RequirementItem = ({ met, text }: { met: boolean; text: string }) => {
-    const isTyping = password.length > 0;
-
-    return (
-      <div className={`flex items-center gap-1.5 text-xs font-medium transition-colors duration-300 ${
-        met ? 'text-green-500' : (isTyping ? 'text-red-500' : 'text-sub')
-      }`}>
-        {met ? (
-          <CheckCircle2 className="w-3.5 h-3.5" />
-        ) : (
-          isTyping ? <XCircle className="w-3.5 h-3.5" /> : <Circle className="w-3.5 h-3.5" />
-        )}
-        <span>{text}</span>
-      </div>
-    );
-  };
+  const isTyping = password.length > 0;
 
   return (
     <AuthLayout
@@ -82,10 +82,11 @@ export default function Register() {
           
           {/* Checklist */}
           <div className="mt-2 flex flex-col gap-2.5 bg-line/20 p-3.5 rounded-xl border border-line/50">
-            <RequirementItem met={reqMinLength} text="Ít nhất 8 ký tự" />
-            <RequirementItem met={reqUppercase} text="Ít nhất 1 chữ cái in hoa" />
-            <RequirementItem met={reqNumber} text="Ít nhất 1 chữ số" />
-            <RequirementItem met={reqSpecial} text="Ít nhất 1 ký tự đặc biệt" />
+            {/* 3. TRUYỀN THÊM PROP isTyping XUỐNG COMPONENT CON */}
+            <RequirementItem met={reqMinLength} text="Ít nhất 8 ký tự" isTyping={isTyping} />
+            <RequirementItem met={reqUppercase} text="Ít nhất 1 chữ cái in hoa" isTyping={isTyping} />
+            <RequirementItem met={reqNumber} text="Ít nhất 1 chữ số" isTyping={isTyping} />
+            <RequirementItem met={reqSpecial} text="Ít nhất 1 ký tự đặc biệt" isTyping={isTyping} />
           </div>
         </div>
 
