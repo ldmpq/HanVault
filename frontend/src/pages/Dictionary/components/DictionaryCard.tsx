@@ -1,5 +1,5 @@
 import { Heart, Volume2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import type { Vocabulary } from '../../../shared/types/vocabulary.types';
 
 interface DictionaryCardProps {
@@ -11,10 +11,11 @@ interface DictionaryCardProps {
 
 export default function DictionaryCard({ word, isFav, onToggleFavorite, onPlayAudio }: DictionaryCardProps) {
   const navigate = useNavigate();
+  const location = useLocation();
 
   return (
     <div 
-      onClick={() => navigate(`/word/${word.id}`, { state: { from: 'dictionary' } })} 
+      onClick={() => navigate(`/word/${word.id}`, { state: { fromDictionary: true, searchString: location.search } })} 
       className="bg-surface rounded-2xl p-4 flex flex-col items-center text-center shadow-[0_2px_8px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_20px_rgb(0,0,0,0.08)] hover:border-brand/30 transition-all cursor-pointer border border-line h-full group"
     >
       <div className="flex justify-between items-start w-full mb-3">

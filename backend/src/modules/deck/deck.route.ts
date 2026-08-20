@@ -147,6 +147,17 @@ router.post('/:id/items', authenticateJwt, validate(addItemsSchema), DeckControl
 
 /**
  * @swagger
+ * /api/decks/{id}/items/{vocabId}:
+ *   delete:
+ *     summary: Xóa một từ vựng khỏi bộ thẻ cá nhân
+ *     tags: [Decks]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.delete('/:id/items/:vocabId', authenticateJwt, DeckController.removeItem);
+
+/**
+ * @swagger
  * /api/decks/{id}/start:
  *   post:
  *     summary: Ghi nhận người dùng bắt đầu theo học bộ thẻ này (lưu vào bảng user_decks)

@@ -12,7 +12,7 @@ import WordRelations from './components/WordRelations';
 
 export default function WordDetail() {
   const { id } = useParams();
-  const location = useLocation(); 
+  const location = useLocation();
   const deckId = location.state?.deckId || '';
   const deckName = location.state?.deckName || 'Chi tiết bộ thẻ';
 

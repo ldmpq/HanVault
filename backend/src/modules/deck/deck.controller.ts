@@ -56,6 +56,27 @@ export class DeckController {
     }
   }
 
+  static async removeItem(req: Request, res: Response): Promise<void> {
+    try {
+      const deckId = Number(req.params.id);
+      const vocabId = Number(req.params.vocabId);
+      const userId = (req as any).user!.userId;
+      
+      await DeckService.removeItemFromDeck(deckId, vocabId, userId);
+      res.status(200).json({ success: true, message: 'Đã xóa từ vựng khỏi bộ thẻ.' });
+    } catch (error: any) {
+      if (error.message?.startsWith('DECK_NOT_FOUND')) {
+        res.status(404).json({ success: false, message: error.message.split(': ')[1] });
+        return;
+      }
+      if (error.message?.startsWith('FORBIDDEN')) {
+        res.status(403).json({ success: false, message: error.message.split(': ')[1] });
+        return;
+      }
+      throw error;
+    }
+  }
+
   static async startStudy(req: Request<{ id: string }>, res: Response): Promise<void> {
     try {
       const id = Number(req.params.id);

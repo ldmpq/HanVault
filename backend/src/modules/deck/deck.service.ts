@@ -135,7 +135,6 @@ export class DeckService {
       vocabularyId: vocabId,
     }));
 
-    // Chỉ với 1 câu query duy nhất, Drizzle sẽ đẩy toàn bộ array vào DB.
     // Nếu từ đó đã tồn tại trong bộ (bị trùng Composite Key), nó sẽ tự động bỏ qua (onConflictDoNothing).
     await db.insert(deckItems)
       .values(insertData)
@@ -145,7 +144,23 @@ export class DeckService {
   }
 
   /**
-   * 5. USER BẤM "BẮT ĐẦU HỌC" BỘ THẺ NÀY (TRACKING PROGRESS)
+   * 5. XÓA TỪ VỰNG KHỎI BỘ THẺ
+   */
+  static async removeItemFromDeck(deckId: number, vocabularyId: number, userId: string) {
+    // Kiểm tra bộ thẻ có tồn tại và user có quyền không
+    const deck = await db.query.decks.findFirst({ where: eq(decks.id, deckId) });
+    if (!deck) throw new Error('DECK_NOT_FOUND: Bộ thẻ không tồn tại.');
+    if (deck.ownerId !== userId) throw new Error('FORBIDDEN: Không có quyền chỉnh sửa bộ thẻ này.');
+
+    // Xóa từ vựng khỏi bộ thẻ
+    await db.delete(deckItems)
+      .where(and(eq(deckItems.deckId, deckId), eq(deckItems.vocabularyId, vocabularyId)));
+
+    return true;
+  }
+
+  /**
+   * 6. USER BẤM "BẮT ĐẦU HỌC" BỘ THẺ NÀY (TRACKING PROGRESS)
    */
   static async startStudyDeck(deckId: number, userId: string) {
     const deck = await db.query.decks.findFirst({ where: eq(decks.id, deckId) });
@@ -171,6 +186,9 @@ export class DeckService {
     return { message: 'Bắt đầu hành trình chinh phục bộ thẻ thành công! 🚀', progress: newProgress };
   }
 
+  /**
+   * 7. CẬP NHẬT BỘ THẺ
+   */
   static async updateDeck(deckId: number, input: Partial<CreateDeckInput>, userId: string) {
     const deck = await db.query.decks.findFirst({ where: eq(decks.id, deckId) });
     if (!deck) throw new Error('DECK_NOT_FOUND: Bộ thẻ không tồn tại.');
@@ -185,6 +203,9 @@ export class DeckService {
     return true;
   }
 
+  /**
+   * 4. XÓA BỘ THẺ
+   */
   static async deleteDeck(deckId: number, userId: string) {
     const deck = await db.query.decks.findFirst({ where: eq(decks.id, deckId) });
     if (!deck) throw new Error('DECK_NOT_FOUND: Bộ thẻ không tồn tại.');
