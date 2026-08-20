@@ -57,13 +57,13 @@ export default function SearchFilterBar({
           
           {hskFilter && (
             <span className="bg-brand/10 text-brand px-3 py-1 rounded-full text-xs font-medium border border-brand/20">
-              {HSK_FILTER_OPTIONS.find(o => o.value === hskFilter)?.label}
+              {HSK_FILTER_OPTIONS.find(o => String(o.value) === String(hskFilter))?.label}
             </span>
           )}
           
           {topicFilter && (
             <span className="bg-brand/10 text-brand px-3 py-1 rounded-full text-xs font-medium border border-brand/20">
-              {topics.find(t => t.id.toString() === topicFilter)?.name}
+              {topics.find(t => String(t.id) === String(topicFilter))?.name}
             </span>
           )}
           
@@ -115,12 +115,15 @@ export default function SearchFilterBar({
               <div className="mb-8">
                 <h3 className="text-xs font-bold text-sub uppercase tracking-widest mb-3">Cấp độ HSK</h3>
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                  <button onClick={() => onHskFilterChange('')} className={`py-2.5 rounded-xl text-sm font-medium transition-colors border ${hskFilter === '' ? 'bg-brand text-white border-brand shadow-md' : 'bg-surface text-sub border-transparent hover:border-line'}`}>Tất cả</button>
-                  {HSK_FILTER_OPTIONS.map(option => (
-                    <button key={option.value} onClick={() => onHskFilterChange(option.value)} className={`py-2.5 rounded-xl text-sm font-medium transition-colors border flex items-center justify-center gap-1.5 ${hskFilter === option.value ? 'bg-brand text-white border-brand shadow-md' : 'bg-surface text-sub border-transparent hover:border-line shadow-sm'}`}>
-                      {hskFilter === option.value && <CheckCircle2 className="w-4 h-4" />} {option.label}
-                    </button>
-                  ))}
+                  <button onClick={() => onHskFilterChange('')} className={`py-2.5 rounded-xl text-sm font-medium transition-colors border ${!hskFilter ? 'bg-brand text-white border-brand shadow-md' : 'bg-surface text-sub border-transparent hover:border-line'}`}>Tất cả</button>
+                  {HSK_FILTER_OPTIONS.map(option => {
+                    const isSelected = String(hskFilter) === String(option.value);
+                    return (
+                      <button key={option.value} onClick={() => onHskFilterChange(option.value)} className={`py-2.5 rounded-xl text-sm font-medium transition-colors border flex items-center justify-center gap-1.5 ${isSelected ? 'bg-brand text-white border-brand shadow-md' : 'bg-surface text-sub border-transparent hover:border-line shadow-sm'}`}>
+                        {isSelected && <CheckCircle2 className="w-4 h-4" />} {option.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

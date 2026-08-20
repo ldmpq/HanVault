@@ -9,15 +9,18 @@ export const renderBreadcrumbs = (
 ) => {
   if (!character) return null;
 
-  if (locationState?.from === 'dictionary') {
+  const searchString = locationState?.searchString || '';
+
+  if (locationState?.fromDictionary || locationState?.from === 'dictionary') {
     return (
       <div className="flex items-center gap-2 text-xs font-bold text-gray-500 mb-8 tracking-wide">
-        <Link to="/dictionary" className="hover:text-gray-900 transition-colors">Từ điển</Link>
+        <Link to={`/dictionary${searchString}`} className="hover:text-gray-900 transition-colors">Từ điển</Link>
         <ChevronRight className="w-3.5 h-3.5" />
         <span className="text-gray-900">{character}</span>
       </div>
     );
   }
+  
   if (deckId) {
     return (
       <div className="flex items-center gap-2 text-xs font-bold text-gray-500 mb-8 tracking-wide">
@@ -29,6 +32,7 @@ export const renderBreadcrumbs = (
       </div>
     );
   }
+  
   return (
     <div className="flex items-center gap-2 text-xs font-bold text-gray-500 mb-8 tracking-wide">
       <Link to="/" className="hover:text-gray-900 transition-colors">Trang chủ</Link>

@@ -9,7 +9,7 @@ export function useAddToDeckModal(isOpen: boolean, onClose: () => void, wordId?:
   const [isLoadingDecks, setIsLoadingDecks] = useState(false);
   const [isAddingToDeck, setIsAddingToDeck] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedDeckId, setSelectedDeckId] = useState<number | null>(null);
+  const [selectedDeckIds, setSelectedDeckIds] = useState<number[]>([]);
   const [isSuccess, setIsSuccess] = useState(false);
 
   useEffect(() => {
@@ -34,7 +34,7 @@ export function useAddToDeckModal(isOpen: boolean, onClose: () => void, wordId?:
       
       fetchPersonalDecks();
       setSearchQuery('');
-      setSelectedDeckId(null);
+      setSelectedDeckIds([]);
       setIsSuccess(false);
     }
   }, [isOpen]);
@@ -47,8 +47,16 @@ export function useAddToDeckModal(isOpen: boolean, onClose: () => void, wordId?:
     });
   }, [searchQuery, userDecks]);
 
+  const toggleDeckSelection = (deckId: number) => {
+    setSelectedDeckIds((prev) => 
+      prev.includes(deckId)
+        ? prev.filter(id => id !== deckId)
+        : [...prev, deckId]
+    )
+  }
+
   const handleSubmit = async () => {
-    if (!selectedDeckId) return;
+    if (!selectedDeckIds) return;
     
     setIsAddingToDeck(true);
     try {
@@ -59,7 +67,11 @@ export function useAddToDeckModal(isOpen: boolean, onClose: () => void, wordId?:
          return;
       }
 
-      await axiosClient.post(`/decks/${selectedDeckId}/items`, { vocabularyIds: [finalWordId] });
+      const addPromises = selectedDeckIds.map(deckId => 
+        axiosClient.post(`/decks/${deckId}/items`, { vocabularyIds: [finalWordId] })
+      );
+      
+      await Promise.all(addPromises);
       setIsSuccess(true);
       setTimeout(() => onClose(), 1200);
     } catch (error: any) {
@@ -74,6 +86,6 @@ export function useAddToDeckModal(isOpen: boolean, onClose: () => void, wordId?:
 
   return {
     filteredDecks, isLoadingDecks, isAddingToDeck, isSuccess,
-    searchQuery, setSearchQuery, selectedDeckId, setSelectedDeckId, handleSubmit
+    searchQuery, setSearchQuery, selectedDeckIds, setSelectedDeckIds, toggleDeckSelection, handleSubmit
   };
 }

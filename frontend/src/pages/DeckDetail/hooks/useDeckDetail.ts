@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import axiosClient from '../../../shared/lib/axiosClient';
 import type { Vocabulary } from '../../../shared/types/vocabulary.types';
 
@@ -9,6 +9,27 @@ export const useDeckDetail = (deckId: string | undefined) => {
   const [words, setWords] = useState<Vocabulary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+
+  const handleRemoveWord = useCallback(async (vocabId: number) => {
+    if (!deckId) return;
+    
+    // Optimistic UI update
+    setWords(prev => prev.filter(w => w.id !== vocabId));
+    
+    try {
+      await axiosClient.delete(`/decks/${deckId}/items/${vocabId}`);
+    } catch (error) {
+      console.error('Lỗi khi xóa từ:', error);
+      alert('Không thể xóa từ vựng lúc này!');
+    }
+  }, [deckId]);
+
+  // Tính toán Phân trang trực tiếp từ mảng words ban đầu
+  const totalPages = Math.ceil(words.length / ITEMS_PER_PAGE);
+  const displayedWords = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return words.slice(start, start + ITEMS_PER_PAGE);
+  }, [words, currentPage]);
 
   useEffect(() => {
     const fetchDeckDetails = async () => {
@@ -29,13 +50,6 @@ export const useDeckDetail = (deckId: string | undefined) => {
     fetchDeckDetails();
   }, [deckId]);
 
-  // Tính toán Phân trang trực tiếp từ mảng words ban đầu
-  const totalPages = Math.ceil(words.length / ITEMS_PER_PAGE);
-  const displayedWords = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return words.slice(start, start + ITEMS_PER_PAGE);
-  }, [words, currentPage]);
-
   return {
     deckInfo,
     words,
@@ -43,6 +57,7 @@ export const useDeckDetail = (deckId: string | undefined) => {
     currentPage,
     setCurrentPage,
     totalPages,
-    displayedWords
+    displayedWords,
+    handleRemoveWord
   };
 };

@@ -15,7 +15,8 @@ export default function DeckDetail() {
     currentPage,
     setCurrentPage,
     totalPages,
-    displayedWords
+    displayedWords,
+    handleRemoveWord
   } = useDeckDetail(deckId);
 
   if (isLoading) return <div className="text-center py-20 text-sub">Đang tải dữ liệu bộ thẻ...</div>;
@@ -37,7 +38,7 @@ export default function DeckDetail() {
 
       {/* ================= HEADER SECTION ================= */}
       <div className="flex flex-col lg:flex-row gap-10 lg:gap-16 mb-16">
-        <div className="w-full lg:w-[420px] shrink-0 relative rounded-[2rem] overflow-hidden shadow-sm bg-surface aspect-[3/4] border border-line">
+        <div className="w-full lg:w-[300px] shrink-0 relative rounded-[2rem] overflow-hidden shadow-sm bg-surface aspect-[3/4] border border-line">
           <div className="absolute top-4 right-4 bg-surface/90 backdrop-blur-sm px-4 py-1.5 rounded-full z-10 shadow-sm border border-line">
             <span className="text-brand text-xs font-bold tracking-wide">HSK {deckInfo.hskLevel || 4}</span>
           </div>
@@ -116,7 +117,7 @@ export default function DeckDetail() {
         <div className="flex justify-between items-end mb-8">
           <div>
             <h2 className="text-2xl font-bold text-main mb-1">Danh sách từ vựng</h2>
-            <p className="text-sub text-sm">Xem trước các từ vựng bạn sẽ học trong bộ thẻ này.</p>
+            <p className="text-sub text-sm">Xem trước các từ vựng bạn sẽ học trong bộ thẻ này</p>
           </div>
           <button className="text-brand text-sm font-bold flex items-center gap-1 hover:underline">
             Xem tất cả <ArrowRight className="w-4 h-4" />
@@ -136,6 +137,8 @@ export default function DeckDetail() {
                   word={word} 
                   deckId={deckId} 
                   deckName={deckInfo.name} 
+                  isSystemDeck={deckInfo.isSystem}
+                  onRemove={handleRemoveWord}
                 />
               ))}
             </div>

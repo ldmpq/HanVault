@@ -11,7 +11,7 @@ interface AddToDeckModalProps {
 export default function AddToDeckModal({ isOpen, onClose, wordId, wordCharacter }: AddToDeckModalProps) {
   const {
     filteredDecks, isLoadingDecks, isAddingToDeck, isSuccess,
-    searchQuery, setSearchQuery, selectedDeckId, setSelectedDeckId, handleSubmit
+    searchQuery, setSearchQuery, selectedDeckIds, toggleDeckSelection, handleSubmit
   } = useAddToDeckModal(isOpen, onClose, wordId);
 
   if (!isOpen) return null;
@@ -32,7 +32,7 @@ export default function AddToDeckModal({ isOpen, onClose, wordId, wordCharacter 
             </div>
             <h3 className="text-2xl font-bold text-main mb-2">Thành công!</h3>
             <p className="text-sm text-sub">
-              Đã lưu <strong className="font-bold text-main">"{wordCharacter}"</strong> vào bộ thẻ.
+              Đã lưu <strong className="font-bold text-main">"{wordCharacter}"</strong> vào {selectedDeckIds.length} bộ thẻ.
             </p>
           </div>
         ) : (
@@ -49,7 +49,7 @@ export default function AddToDeckModal({ isOpen, onClose, wordId, wordCharacter 
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-sub pointer-events-none" />
               <input 
                 type="text"
-                placeholder="Search your decks..."
+                placeholder="Tìm bộ thẻ..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-12 pr-4 py-3.5 bg-app border border-line rounded-2xl text-sm text-main placeholder-sub focus:outline-none focus:border-brand/30 focus:ring-4 focus:ring-brand/10 transition-all font-medium"
@@ -61,12 +61,12 @@ export default function AddToDeckModal({ isOpen, onClose, wordId, wordCharacter 
                 <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 text-sub animate-spin" /></div>
               ) : filteredDecks.length > 0 ? (
                 filteredDecks.map(deck => {
-                  const isSelected = selectedDeckId === deck.id;
+                  const isSelected = selectedDeckIds.includes(deck.id);
                   const title = deck.title || (deck as any).name || 'Untitled Deck';
                   return (
                     <button
                       key={deck.id}
-                      onClick={() => setSelectedDeckId(deck.id)}
+                      onClick={() => toggleDeckSelection(deck.id)}
                       className={`w-full text-left p-4 rounded-2xl flex items-center gap-4 transition-all duration-200 group ${isSelected ? 'border border-brand/30 bg-brand/10' : 'border border-transparent bg-app hover:bg-line/50'}`}
                     >
                       <div className="w-12 h-12 bg-surface rounded-[14px] shadow-sm flex items-center justify-center text-xl shrink-0 border border-line">{deck.icon || '📘'}</div>
@@ -76,9 +76,9 @@ export default function AddToDeckModal({ isOpen, onClose, wordId, wordCharacter 
                       </div>
                       <div className="shrink-0 ml-2">
                         {isSelected ? (
-                          <div className="w-6 h-6 rounded-full bg-brand flex items-center justify-center shadow-sm"><Check className="w-3.5 h-3.5 text-white" strokeWidth={3} /></div>
+                          <div className="w-6 h-6 rounded-md bg-brand flex items-center justify-center shadow-sm"><Check className="w-3.5 h-3.5 text-white" strokeWidth={3} /></div>
                         ) : (
-                          <div className="w-6 h-6 rounded-full border-2 border-line bg-surface group-hover:border-sub transition-colors"></div>
+                          <div className="w-6 h-6 rounded-md border-2 border-line bg-surface group-hover:border-sub transition-colors"></div>
                         )}
                       </div>
                     </button>
@@ -92,10 +92,11 @@ export default function AddToDeckModal({ isOpen, onClose, wordId, wordCharacter 
             <div className="flex items-center justify-between gap-4 mt-6 pt-2">
               <button onClick={onClose} className="flex-1 py-3.5 text-sm font-bold text-sub hover:text-main transition-colors">Hủy</button>
               <button 
-                onClick={handleSubmit} disabled={!selectedDeckId || isAddingToDeck}
+                onClick={handleSubmit} 
+                disabled={selectedDeckIds.length === 0 || isAddingToDeck}
                 className="flex-[2] flex items-center justify-center gap-2 bg-brand hover:bg-brand-hover text-white font-bold py-3.5 rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
               >
-                {isAddingToDeck ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Bookmark className="w-4 h-4 fill-current" /> Thêm vào bộ thẻ</>}
+                {isAddingToDeck ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Bookmark className="w-4 h-4 fill-current" /> Thêm {selectedDeckIds.length > 0 ? `(${selectedDeckIds.length})` : ''}</>}
               </button>
             </div>
           </>
