@@ -22,7 +22,7 @@ import Quiz from './pages/Quiz/Quiz';
 
 import Dictionary from './pages/Dictionary/Dictionary';
 import WordDetail from './pages/WordDetail/WordDetail';
-// import Translate from './pages/Translate/Translate';
+import Translate from './pages/Translate/Translate';
 
 import Progress from './pages/Progress/Progress';
 import Profile from './pages/Profile/Profile';
@@ -62,7 +62,7 @@ function App() {
           {/* Cập nhật sau (/translate) */}
           <Route path="/dictionary" element={<Dictionary />} />
           <Route path="/word/:id" element={<WordDetail/>} />
-          <Route path="/translate" element={<ComingSoon />} />
+          <Route path="/translate" element={<Translate />} />
           {/* Cập nhật sau (/progress) & (/settings) */}
           <Route path="/progress" element={<Progress />} />
           <Route path="/profile" element={<Profile />} />
