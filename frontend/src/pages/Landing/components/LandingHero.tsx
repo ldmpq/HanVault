@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 
-export default function HeroSection() {
+export default function LandingHero() {
   const navigate = useNavigate();
   
   return (

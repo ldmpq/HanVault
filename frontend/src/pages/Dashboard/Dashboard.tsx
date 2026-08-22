@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useGreeting } from '../../shared/hooks/useGreeting';
 import { useDashboard } from './hooks/useDashboard';
-import HeroSection from './components/HeroSection';
+import DashboardHero from './components/DashboardHero';
 import ReviewWidget from './components/ReviewWidget';
 import CurrentCourseWidget from './components/CurrentCourseWidget';
 import RecommendedDecks from './components/RecommendedDecks';
@@ -47,7 +47,7 @@ export default function Dashboard() {
   return (
     <div className="w-full max-w-[1200px] mx-auto animate-fade-in pb-12">
       
-      <HeroSection 
+      <DashboardHero
         greeting={greeting}
         userName={data.userName}
         dailyGoal={data.dailyGoal}

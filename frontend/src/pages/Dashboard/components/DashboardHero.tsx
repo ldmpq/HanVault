@@ -1,6 +1,6 @@
 import { Play, Flame } from 'lucide-react';
 
-interface HeroSectionProps {
+interface DashboardHeroProps {
   greeting: string;
   userName?: string;
   dailyGoal: { current: number; target: number };
@@ -9,14 +9,14 @@ interface HeroSectionProps {
   onContinue: () => void;
 }
 
-export default function HeroSection({ 
+export default function DashboardHero({ 
   greeting, 
   userName, 
   dailyGoal, 
   streak, 
   weeklyActivity = [false, false, false, false, false, false, false], 
   onContinue 
-}: HeroSectionProps) {
+}: DashboardHeroProps) {
   const circleCircumference = 226; 
   // Fallback mục tiêu > 0 để tránh lỗi chia cho 0 (NaN) khi chưa có data
   const progressRatio = Math.min(dailyGoal.current / (dailyGoal.target || 1), 1);
